@@ -1,0 +1,14 @@
+opencv-python
+jupyter
+numpy
+pillow
+imageio
+scipy
+matplotlib
+notebook
+scikit-image
+scikit-learn
+pandas
+
+
+
