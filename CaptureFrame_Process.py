@@ -18,4 +18,18 @@ Inputs:(three)
 Output: None
 """
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
-    pass
+    #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+    cap = cv2.VideoCapture(file_path)
+
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+
+        #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame = Localization.plate_detection(frame)
+
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
