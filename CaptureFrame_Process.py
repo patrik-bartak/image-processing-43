@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import Localization
 import Recognize
+import numpy as np
 
 """
 In this file, you will define your own CaptureFrame_Process funtion. In this function,
@@ -25,10 +26,18 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         ret, frame = cap.read()
 
         #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame = Localization.plate_detection(frame)
+        plates = Localization.plate_detection(frame)
 
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        #https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
+        imstack = cv2.resize(plates[0], (1000, 800))
+
+        # for plate in plates:
+        #         #     im = cv2.resize(plate, (1000, 800))
+        #         #     print(imstack)
+        #         #     imstack = np.vstack(imstack, im)
+
+        cv2.imshow('stack', imstack)
+        if cv2.waitKey(10) & 0xFF == ord('q'):
             break
 
     cap.release()
