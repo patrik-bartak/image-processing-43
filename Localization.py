@@ -40,7 +40,7 @@ def plate_detection(image):
     #
     # result = cv2.bitwise_and(original, original, mask=mask)
 
-    result = [cv2.bitwise_and(original, original, mask = mask)]
+    result = [cv2.bitwise_and(original, original, mask=mask_loc)]
 
     return result
 
@@ -54,26 +54,21 @@ def get_yellow_mask(image):
 
 
 def get_plates_by_bounding(image):
-    #https://www.youtube.com/watch?v=UgGLo_QRHJ8
+    # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    #https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
+    # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     image_blur = cv2.bilateralFilter(image_grey, 17, 15, 15)
     image_edges = cv2.Canny(image_blur, 30, 200)
     contours = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = imutils.grab_contours(contours)
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse = True)[:5]
+    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
         all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
-        if len(all_edges) == 4:
-            x, y, a, b = cv2.boundingRect(con)
-            #plate = image[y:y+b, x:x+a]
-            #plate = cv2.rectangle(image, (x, y), (x + a, y + b), (0, 255, 0))
+        if len(all_edges) == 4 and check_distances(all_edges):
             all_plates.append(all_edges)
-            #chosen = all_edges
-            #break
 
     mask = np.zeros(image_grey.shape, np.uint8)
     if len(all_plates) == 0:
@@ -82,4 +77,15 @@ def get_plates_by_bounding(image):
     return mask
 
 
+def check_distances(points, epsilon=10):
 
+    edges = []
+    for i in range(4):
+        A = points[i][0]
+        next = i + 1
+        if i == 3:
+            next = 0
+        B = points[next][0]
+        edges.append([B[0] - A[0], B[1] - A[1]])
+
+    return abs(np.linalg.norm(edges[0]) - np.linalg.norm(edges[2])) < epsilon and abs(np.linalg.norm(edges[1]) - np.linalg.norm(edges[3])) < epsilon
