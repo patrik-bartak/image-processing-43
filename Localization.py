@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import imutils
 
 """
 In this file, you need to define plate_detection function.
@@ -25,13 +24,17 @@ def plate_detection(image):
     # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
     # https://stackoverflow.com/questions/22588146/tracking-white-color-using-python-opencv
 
+    # https://tajanthan.github.io/cv/docs/anpr.pdf
+
     original = image.copy()
     mask_yellow = get_yellow_mask(image)
     mask = mask_yellow
 
     mask_loc = get_plates_by_bounding(image)
+    # mask2 = get_plates_by_bounding(image, True)
 
-    mask = cv2.bitwise_or(mask, mask_loc)
+    # mask = cv2.bitwise_or(mask, cv2.bitwise_and(mask2, mask_loc))
+    mask = mask_loc
 
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
     kernel = np.ones((5, 5), np.uint8)
@@ -40,7 +43,7 @@ def plate_detection(image):
     #
     # result = cv2.bitwise_and(original, original, mask=mask)
 
-    result = [cv2.bitwise_and(original, original, mask=mask_loc)]
+    result = [cv2.bitwise_or(original, original, mask=mask)]
 
     return result
 
@@ -58,11 +61,10 @@ def get_plates_by_bounding(image):
     all_plates = []
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
-    image_blur = cv2.bilateralFilter(image_grey, 17, 15, 15)
-    image_edges = cv2.Canny(image_blur, 30, 200)
-    contours = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contours = imutils.grab_contours(contours)
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
+    image_blur = cv2.bilateralFilter(image_grey, 4, 150, 150)
+    image_edges = cv2.Canny(image_blur, 30, 150)
+    contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:30]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -77,8 +79,7 @@ def get_plates_by_bounding(image):
     return mask
 
 
-def check_distances(points, epsilon=10):
-
+def check_distances(points, epsilon=45):
     edges = []
     for i in range(4):
         A = points[i][0]
@@ -88,4 +89,27 @@ def check_distances(points, epsilon=10):
         B = points[next][0]
         edges.append([B[0] - A[0], B[1] - A[1]])
 
-    return abs(np.linalg.norm(edges[0]) - np.linalg.norm(edges[2])) < epsilon and abs(np.linalg.norm(edges[1]) - np.linalg.norm(edges[3])) < epsilon
+    dist = []
+    for i in range(4):
+        dist.append(np.linalg.norm(edges[i]))
+
+    return check_ratio(dist) and angle_check(edges) and check_area(dist)
+
+
+def check_area(dist, epsilon = 500):
+    return dist[0] * dist[1] >= epsilon
+
+
+def angle_check(vectors, epsilon=0.5):
+    return get_angle_dot(vectors[0], vectors[1]) < epsilon and get_angle_dot(vectors[2], vectors[3]) < epsilon
+
+
+def get_angle_dot(vec1, vec2):
+    unit1 = vec1 / np.linalg.norm(vec1)
+    unit2 = vec2 / np.linalg.norm(vec2)
+    return abs(np.dot(unit1, unit2))
+
+
+def check_ratio(dist, epsilon=3):
+    ratio = 5
+    return abs(dist[0] / dist[1] - ratio) < epsilon and abs(dist[2] / dist[3] - ratio) < epsilon

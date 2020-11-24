@@ -22,11 +22,17 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     cap = cv2.VideoCapture(file_path)
 
-    while (cap.isOpened()):
+    while cap.isOpened():
         ret, frame = cap.read()
+
+        if frame is None:
+            break
 
         #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         plates = Localization.plate_detection(frame)
+
+        if plates is None:
+            continue
 
         #https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
         imstack = cv2.resize(plates[0], (1000, 800))
@@ -37,7 +43,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         #         #     imstack = np.vstack(imstack, im)
 
         cv2.imshow('stack', imstack)
-        if cv2.waitKey(10) & 0xFF == ord('q'):
+        if cv2.waitKey(50) & 0xFF == ord('q'):
             break
 
     cap.release()
