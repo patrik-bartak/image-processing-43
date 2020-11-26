@@ -1,0 +1,75 @@
+# Dutch yellow stationary
+XS-NB-23
+98-THD-4
+23-GSX-6
+72-VGX-6
+99-SZG-5
+14-NJK-9
+24-LB-HT
+68-NS-ND
+97-FB-FP
+67-FP-SJ
+96-LKH-9
+56-JTT-5
+88-BB-TS
+56-JTT-5
+ZD-PB-67
+92-GS-VH
+02-BBG-7
+73-PV-HB
+93-PXS-9
+RP-NL-93
+43-HNN-2
+43-JS-RT
+63-HK-HD
+92-LHR-6
+63-HK-HD
+3-VFX-39
+01-XJ-ND
+96-ND-JB
+57-LF-JB
+VD-020-P
+
+# Dutch yellow moving
+5-SXB-74
+23-GSR-5
+27-LH-TB
+XH-PN-44
+01-RHD-6
+69-GR-DH
+64-LJ-GF
+41-GFZ-8
+28-RXT-9
+89-LZ-GX
+
+# Dutch yellow two in one frame
+62-PB-VT
+28-RBN-4
+24-LSB-1
+89-NV-JR
+05-GH-JS
+TT-BJ-42
+98-JJ-GB
+25-XV-LX
+88-XP-FS
+72-FP-RV
+
+# Foreign white
+NWMMX45
+1-CMV-331
+DS346WG
+DP989CC
+AXT3147
+I7859AM
+
+# Foreign blue
+77-TR-SH
+
+# Foreign white
+CM852DJ
+
+# Foreign black
+85-GJ-45
+
+# Foreign white
+I7859AM
