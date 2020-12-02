@@ -35,14 +35,13 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             continue
 
         #https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
-        imstack = cv2.resize(plates[0], (1000, 800))
 
         # for plate in plates:
         #         #     im = cv2.resize(plate, (1000, 800))
         #         #     print(imstack)
         #         #     imstack = np.vstack(imstack, im)
-
-        cv2.imshow('stack', imstack)
+        im = plates#cv2.resize(plates, (1000, 800))
+        cv2.imshow('Resulting video', im)
         if cv2.waitKey(50) & 0xFF == ord('q'):
             break
 

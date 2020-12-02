@@ -25,27 +25,23 @@ def plate_detection(image):
     # https://stackoverflow.com/questions/22588146/tracking-white-color-using-python-opencv
 
     # https://tajanthan.github.io/cv/docs/anpr.pdf
-
-    original = image.copy()
-    mask_yellow = get_yellow_mask(image)
-    mask = mask_yellow
-
-    mask_loc = get_plates_by_bounding(image)
-    # mask2 = get_plates_by_bounding(image, True)
-
-    # mask = cv2.bitwise_or(mask, cv2.bitwise_and(mask2, mask_loc))
-    mask = mask_loc
-
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
-    kernel = np.ones((5, 5), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    # original = image.copy()
+    # epsilon = 0.1
+    # mask = get_plates_by_bounding(image)
+    # if (mask.mean() < epsilon):
+    #     mask = get_yellow_mask(original)
+    #     kernel = np.ones((5, 5), np.uint8)
+    #     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    #     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     #
-    # result = cv2.bitwise_and(original, original, mask=mask)
+    #     new_image = cv2.bitwise_and(original, original, mask=mask)
+    #     mask = get_plates_by_bounding(new_image)
+    #
+    # final = cv2.bitwise_and(original, original, mask=mask)
 
-    result = [cv2.bitwise_or(original, original, mask=mask)]
-
-    return result
+    return cv2.cvtColor(canny(image, 0, 0), cv2.COLOR_BGR2HSV)
 
 
 def get_yellow_mask(image):
@@ -59,27 +55,70 @@ def get_yellow_mask(image):
 def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
-    image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
-    image_blur = cv2.bilateralFilter(image_grey, 4, 150, 150)
-    image_edges = cv2.Canny(image_blur, 30, 150)
+
+    image_edges = canny(image, 0, 10)
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:30]
+    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
         all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
-        if len(all_edges) == 4 and check_distances(all_edges):
+        if len(all_edges) == 4 and check(all_edges):
             all_plates.append(all_edges)
 
-    mask = np.zeros(image_grey.shape, np.uint8)
+    mask = np.zeros(image.shape, np.uint8)
     if len(all_plates) == 0:
         return mask
     new_image = cv2.drawContours(mask, all_plates, 0, 255, -1)
     return mask
 
 
-def check_distances(points, epsilon=45):
+# https://docs.opencv.org/3.4/da/d5c/tutorial_canny_detector.html
+def canny(image, lower, upper):
+    image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
+    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)
+    gradient, theta = get_gradient(image_f)
+    max_grad = apply_maximum(gradient)
+    result = apply_thresholds(max_grad, lower, upper)
+    return result
+
+
+def apply_maximum(grads):
+    return grads
+
+
+def apply_thresholds(image, lower, upper):
+    return image;
+
+
+def get_gradient(image):
+    g_x, g_y = apply_sobel(image)
+    g = np.sqrt(np.power(g_x, 2) + np.power(g_y, 2))
+    theta = np.arctan(g_y / g_x)
+    return g, theta
+
+
+def apply_sobel(image):
+    kernel_x = np.zeros((3, 3), np.uint8)
+    kernel_x[0][0], kernel_x[0][2], kernel_x[2][0], kernel_x[2][2] = -1, -1, -1, -1
+    kernel_x[0][1], kernel_x[2][1] = 2, 2
+    kernel_y = kernel_x.copy()
+    kernel_y[0][1], kernel_y[2][1] = 0, 0
+    kernel_y[1][0], kernel_y[1][2] = 2, 2
+    image_copy = image.copy()
+    return conv2d(image_copy, kernel_x), conv2d(image, kernel_y)
+
+
+# https://stackoverflow.com/questions/43086557/convolve2d-just-by-using-numpy
+def conv2d(a, f):
+    s = f.shape + tuple(np.subtract(a.shape, f.shape) + 1)
+    strd = np.lib.stride_tricks.as_strided
+    subM = strd(a, shape=s, strides=a.strides * 2)
+    return np.einsum('ij,ijkl->kl', f, subM)
+
+
+def check(points):
     edges = []
     for i in range(4):
         A = points[i][0]
@@ -96,7 +135,7 @@ def check_distances(points, epsilon=45):
     return check_ratio(dist) and angle_check(edges) and check_area(dist)
 
 
-def check_area(dist, epsilon = 500):
+def check_area(dist, epsilon=500):
     return dist[0] * dist[1] >= epsilon
 
 
