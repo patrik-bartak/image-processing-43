@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy import signal
+import threading
 
 """
 In this file, you need to define plate_detection function.
@@ -28,22 +29,22 @@ def plate_detection(image):
     # https://tajanthan.github.io/cv/docs/anpr.pdf
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
 
-    # original = image.copy()
-    # epsilon = 0.1
-    # mask = get_plates_by_bounding(image)
-    # if (mask.mean() < epsilon):
-    #     mask = get_yellow_mask(original)
-    #     kernel = np.ones((5, 5), np.uint8)
-    #     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    #     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    #
-    #     new_image = cv2.bitwise_and(original, original, mask=mask)
-    #     mask = get_plates_by_bounding(new_image)
-    #
-    # print(mask.shape)
-    # final = cv2.bitwise_and(original, original, mask=mask)
+    original = image.copy()
+    epsilon = 0.1
+    mask = get_plates_by_bounding(image)
+    if (mask.mean() < epsilon):
+        mask = get_yellow_mask(original)
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
 
-    return canny(image, 50, 100)
+        new_image = cv2.bitwise_and(original, original, mask=mask)
+        mask = get_plates_by_bounding(new_image)
+
+    print("Next")
+    final = cv2.bitwise_and(original, original, mask=mask)
+
+    return final
 
 
 def get_yellow_mask(image):
@@ -58,20 +59,21 @@ def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
 
-    image_edges = canny(image, 0, 10)
+    image_edges = canny(image, 20, 50)
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
-
-    for con in contours_reduced:
-        perimeter = cv2.arcLength(con, True)
-        all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
-        if len(all_edges) == 4 and check(all_edges):
-            all_plates.append(all_edges)
-
-    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-    if len(all_plates) == 0:
-        return mask
-    new_image = cv2.drawContours(mask, all_plates, 0, 255, -1)
+    # contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)
+    #
+    # for con in contours_reduced:
+    #     perimeter = cv2.arcLength(con, True)
+    #     all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
+    #     all_plates.append(all_edges)
+    #     #if len(all_edges) == 4 and check(all_edges):
+    #     #    all_plates.append(all_edges)
+    #
+    # mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+    # if len(all_plates) == 0:
+    #     return mask
+    # new_image = cv2.drawContours(mask, all_plates, 0, 255, -1)
     return mask
 
 
@@ -81,7 +83,7 @@ def canny(image, lower, upper):
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)
+    image_f = cv2.bilateralFilter(image_grey, 15, 150, 150)
     #return cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
@@ -90,7 +92,7 @@ def canny(image, lower, upper):
     # Double threshold - step 4 of Canny
     weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
     result = edge_running(weak_edge, strong_edge)
-    return result
+    return np.uint8(result)
 
 
 def non_max_suppression(gradient, d):
@@ -129,9 +131,25 @@ def apply_thresholds(image, lower=5, upper=20):
     return mask_weak, mask_strong
 
 
-def edge_running(weak, strong):
-
-    return strong
+def edge_running(weak, strong, k=1):
+    row, col = np.where(strong > 1)
+    result = np.zeros(strong.shape)
+    for i in range(len(row)):
+        x = col[i]
+        y = row[i]
+        for x_k in range(-k, k):
+            found = False
+            for y_k in range(-k, k):
+                if y < 0 or x < 0 or x >= len(strong[0]) or y >= len(strong) or y + y_k < 0 or y + y_k >= len(strong) \
+                        or x + x_k < 0 or x + x_k >= len(strong[0]):
+                    continue
+                if weak[y + y_k][x + x_k] > 0:
+                    result[y][x] = 255
+                    found = True
+                    break
+            if found:
+                break
+    return result
 
 
 def get_gradient(image):
