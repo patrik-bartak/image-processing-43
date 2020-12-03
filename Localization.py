@@ -1,6 +1,6 @@
 import cv2
-from scipy import signal
 import numpy as np
+from scipy import signal
 
 """
 In this file, you need to define plate_detection function.
@@ -93,8 +93,34 @@ def canny(image, lower, upper):
     return result
 
 
-def non_max_suppression(gradient, direction):
-    return gradient
+def non_max_suppression(gradient, d):
+    h, w = gradient.shape
+    res = np.zeros((h, w))
+    # d[np.where(-np.pi/8 <= d <= np.pi/8)]
+    # rows, cols = np.where(np.abs(d) > np.pi * 3 / 8)
+
+    # rows, cols = np.where(np.abs(d) <= np.pi / 8)
+    # res[rows, cols] = gradient[rows, cols]
+
+    # for i in range(1, h - 1):
+    #     for j in range(1, w - 1):
+    #         if gradient[i, j] >= gradient[i, j+1] and gradient[i, j] >= gradient[i, j-1]:
+    #             res[i, j] = gradient[i, j]
+    #         else:
+    #             res[i, j] = 0
+
+    # print(res)
+    for i in range(1, h - 1):
+        for j in range(1, w - 1):
+            if np.abs(d[i, j]) <= np.pi / 8:
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] and gradient[i, j] >= gradient[i, j - 1] else 0
+            elif np.abs(d[i, j]) >= np.pi * 3 / 8:
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] and gradient[i, j] >= gradient[i - 1, j] else 0
+            elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] and gradient[i, j] >= gradient[i - 1, j + 1] else 0
+            elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] and gradient[i, j] >= gradient[i - 1, j - 1] else 0
+    return res
 
 
 def apply_thresholds(image, lower=5, upper=20):
