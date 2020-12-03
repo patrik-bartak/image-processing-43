@@ -41,7 +41,7 @@ def plate_detection(image):
     #
     # final = cv2.bitwise_and(original, original, mask=mask)
 
-    return cv2.cvtColor(canny(image, 0, 0), cv2.COLOR_BGR2HSV)
+    return canny(image, 0, 0)
 
 
 def get_yellow_mask(image):
@@ -56,7 +56,7 @@ def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
 
-    image_edges = canny(image, 0, 10)
+    image_edges = canny(image, 0, 100)
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
 
@@ -75,47 +75,67 @@ def get_plates_by_bounding(image):
 
 # https://docs.opencv.org/3.4/da/d5c/tutorial_canny_detector.html
 def canny(image, lower, upper):
+    # Making the image greyscale
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
+    # Noise reduction using Gaussian kernel - step 1 of Canny
     image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)
-    gradient, theta = get_gradient(image_f)
-    max_grad = apply_maximum(gradient)
-    result = apply_thresholds(max_grad, lower, upper)
-    return result
+    # Gradient calculation - step 2 of Canny
+    gradient, direction = get_gradient(image_f)
+    # Non-maximum suppression - step 3 of Canny
+    gradient_thin = non_max_suppression(gradient, direction)
+    # Double threshold - step 4 of Canny
+    weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
+    #result = apply_maximum(thresh)
+    return 5*gradient_thin
+
+
+def non_max_suppression(gradient, direction):
+
+
+
+    return gradient
+
+
+def apply_thresholds(image, lower=5, upper=20):
+    _, mask_weak = cv2.threshold(image.copy(), lower, upper, cv2.THRESH_BINARY)
+    mask_strong = cv2.threshold(image.copy(), upper, 255, cv2.THRESH_BINARY)
+    return mask_weak, mask_strong
 
 
 def apply_maximum(grads):
     return grads
 
 
-def apply_thresholds(image, lower, upper):
-    return image;
-
-
 def get_gradient(image):
+    # Sobel gradient in x and y direction
     g_x, g_y = apply_sobel(image)
-    g = np.sqrt(np.power(g_x, 2) + np.power(g_y, 2))
+    # Gradient magnitude
+    g = np.uint8(np.sqrt(np.power(g_x, 2) + np.power(g_y, 2)))
+    print(g)
+    # Gradient orientation
     theta = np.arctan(g_y / g_x)
     return g, theta
 
 
 def apply_sobel(image):
-    kernel_x = np.zeros((3, 3), np.uint8)
-    kernel_x[0][0], kernel_x[0][2], kernel_x[2][0], kernel_x[2][2] = -1, -1, -1, -1
-    kernel_x[0][1], kernel_x[2][1] = 2, 2
-    kernel_y = kernel_x.copy()
-    kernel_y[0][1], kernel_y[2][1] = 0, 0
-    kernel_y[1][0], kernel_y[1][2] = 2, 2
-    image_copy = image.copy()
-    return conv2d(image_copy, kernel_x), conv2d(image, kernel_y)
+    kernel_y = np.zeros((3, 3))
+    kernel_y[0][0], kernel_y[0][2] = 1, 1
+    kernel_y[2][0], kernel_y[2][2] = -1, -1
+    kernel_y[0][1], kernel_y[2][1] = 2, -2
+
+    kernel_x = np.zeros((3, 3))
+    kernel_x[0][0], kernel_x[0][2] = -1, 1
+    kernel_x[2][0], kernel_x[2][2] = -1, 1
+    kernel_x[1][0], kernel_x[1][2] = -2, 2
+    image2 = image.copy()
+    image3 = image.copy()
+    return conv2d(image2, kernel_x) * image, conv2d(image3, kernel_y) * image
 
 
 # https://stackoverflow.com/questions/43086557/convolve2d-just-by-using-numpy
-def conv2d(a, f):
-    s = f.shape + tuple(np.subtract(a.shape, f.shape) + 1)
-    strd = np.lib.stride_tricks.as_strided
-    subM = strd(a, shape=s, strides=a.strides * 2)
-    return np.einsum('ij,ijkl->kl', f, subM)
+def conv2d(image, kernel):
+    return cv2.filter2D(image, -1, kernel)
 
 
 def check(points):
