@@ -18,8 +18,10 @@ Inputs:(three)
 	3. save_path: final .csv file path
 Output: None
 """
+
+
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
-    #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+    # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     cap = cv2.VideoCapture(file_path)
 
     while cap.isOpened():
@@ -28,25 +30,28 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if frame is None:
             break
 
-        #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         plates = Localization.plate_detection(frame)
 
         if plates is None or len(plates) == 0:
             continue
 
-        #https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
-        imstack = None
-        for plate in plates:
-                    #im = cv2.resize(plate, (100, 500))
-                    if imstack is None:
-                        imstack = np.hstack(plate)
-                    else:
-                        imstack = np.hstack(imstack, plate)
-        #im = plates[0]#cv2.resize(plates, (1000, 800))
+        try:
+            # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
+            imstack = None
+            for plate in plates:
+                # im = cv2.resize(plate, (100, 500))
+                if imstack is None:
+                    imstack = np.hstack(plate)
+                else:
+                    imstack = np.hstack(imstack, plate)
+            # im = plates[0]#cv2.resize(plates, (1000, 800))
 
-        cv2.imshow('Resulting video', imstack)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            cv2.imshow('Resulting video', cv2.resize(plates[0], (500, 100)))
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        except:
+            continue
 
     cap.release()
     cv2.destroyAllWindows()
