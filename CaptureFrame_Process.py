@@ -31,18 +31,21 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         plates = Localization.plate_detection(frame)
 
-        if plates is None:
+        if plates is None or len(plates) == 0:
             continue
 
         #https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
+        imstack = None
+        for plate in plates:
+                    #im = cv2.resize(plate, (100, 500))
+                    if imstack is None:
+                        imstack = np.hstack(plate)
+                    else:
+                        imstack = np.hstack(imstack, plate)
+        #im = plates[0]#cv2.resize(plates, (1000, 800))
 
-        # for plate in plates:
-        #         #     im = cv2.resize(plate, (1000, 800))
-        #         #     print(imstack)
-        #         #     imstack = np.vstack(imstack, im)
-        im = plates#cv2.resize(plates, (1000, 800))
-        cv2.imshow('Resulting video', im)
-        if cv2.waitKey(50) & 0xFF == ord('q'):
+        cv2.imshow('Resulting video', imstack)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()

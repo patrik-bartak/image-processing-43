@@ -42,9 +42,18 @@ def plate_detection(image):
         mask = get_plates_by_bounding(new_image)
 
     print("Next")
-    final = cv2.bitwise_and(original, original, mask=mask)
 
-    return final
+    return [crop(image, mask)]
+
+
+def crop(image, mask):
+    return get_segment_crop(image, mask=mask)
+
+
+def get_segment_crop(img,tol=0, mask=None):
+    if mask is None:
+        mask = img > tol
+    return img[np.ix_(mask.any(1), mask.any(0))]
 
 
 def get_yellow_mask(image):
@@ -59,22 +68,33 @@ def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
 
-    image_edges = canny(image, 20, 50)
-    contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    # contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)
-    #
-    # for con in contours_reduced:
-    #     perimeter = cv2.arcLength(con, True)
-    #     all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
-    #     all_plates.append(all_edges)
-    #     #if len(all_edges) == 4 and check(all_edges):
-    #     #    all_plates.append(all_edges)
-    #
-    # mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-    # if len(all_plates) == 0:
-    #     return mask
-    # new_image = cv2.drawContours(mask, all_plates, 0, 255, -1)
+    image_edges = canny(image, 10, 15)
+    # print(np.mean(abs(image_edges - check)))
+    contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # print('Contours: ', len(contours))
+    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    for con in contours_reduced:
+        perimeter = cv2.arcLength(con, True)
+        all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
+        # all_plates.append(all_edges)
+        if len(all_edges) == 4 and check(all_edges):
+            all_plates.append(all_edges)
+
+    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+    if len(all_plates) == 0:
+        return mask
+    cv2.drawContours(mask, all_plates, 0, 255, -1)
     return mask
+
+
+def print_diff(arr1, arr2):
+    for i in range(len(arr1)):
+        res = ''
+        for j in range(len(arr1[0])):
+            res += str(np.int64(arr1[i][j]) - np.int64(arr2[i][j]))
+            res += ', '
+        print(res)
 
 
 # https://docs.opencv.org/3.4/da/d5c/tutorial_canny_detector.html
@@ -83,15 +103,15 @@ def canny(image, lower, upper):
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 15, 150, 150)
-    #return cv2.Canny(image_f, lower, upper)
+    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)
+    # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
     # Non-maximum suppression - step 3 of Canny
     gradient_thin = non_max_suppression(gradient, direction)
     # Double threshold - step 4 of Canny
     weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
-    result = edge_running(weak_edge, strong_edge)
+    result = edge_running(weak_edge, strong_edge, 10)
     return np.uint8(result)
 
 
@@ -112,17 +132,56 @@ def non_max_suppression(gradient, d):
     #             res[i, j] = 0
 
     # print(res)
+
     for i in range(1, h - 1):
         for j in range(1, w - 1):
             if np.abs(d[i, j]) <= np.pi / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] and gradient[i, j] >= gradient[i, j - 1] else 0
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] and gradient[i, j] >= gradient[
+                    i, j - 1] else 0
             elif np.abs(d[i, j]) >= np.pi * 3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] and gradient[i, j] >= gradient[i - 1, j] else 0
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] and gradient[i, j] >= gradient[
+                    i - 1, j] else 0
             elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] and gradient[i, j] >= gradient[i - 1, j + 1] else 0
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] and gradient[i, j] >= gradient[
+                    i - 1, j + 1] else 0
             elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] and gradient[i, j] >= gradient[i - 1, j - 1] else 0
+                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] and gradient[i, j] >= gradient[
+                    i - 1, j - 1] else 0
+
+    #     row1, col1 = np.where(np.abs(d) <= np.pi / 8)
+    #     row2, col2 = np.where(np.abs(d) >= np.pi * 3 / 8)
+    #     row3, col3 = np.where(np.logical_and(np.pi * 1 / 8 <= d, d <= np.pi * 3 / 8))
+    #     row4, col4 = np.where(np.logical_and(np.pi * -1 / 8 >= d, d >= np.pi * -3 / 8))
+    #
+    #     t1 = threading.Thread(target=non_max_helper, args=(res, gradient, row1, col1, 0, 1))
+    #     t1.start()
+    #     t2 = threading.Thread(target=non_max_helper, args=(res, gradient, row2, col2, 1, 0))
+    #     t2.start()
+    #     t3 = threading.Thread(target=non_max_helper, args=(res, gradient, row3, col3, 1, -1))
+    #     t3.start()
+    #     t4 = threading.Thread(target=non_max_helper, args=(res, gradient, row4, col4, -1, 1))
+    #     t4.start()
+    #
+    #     t1.join()
+    #     t2.join()
+    #     t3.join()
+    #     t4.join()
+    # #
+    #     print(np.mean(res))
     return res
+
+
+def non_max_helper(res, gradient, row, col, di, dj):
+    for index in range(len(row)):
+        i = row[index]
+        j = col[index]
+        if not (0 <= i + di < gradient.shape[0] and 0 <= i - di < gradient.shape[0]):
+            continue
+        if not (0 <= j + dj < gradient.shape[1] and 0 <= j - dj < gradient.shape[1]):
+            continue
+        res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + di, j + dj] and gradient[i, j] >= gradient[
+            i - di, j - dj] else 0
+    print(di, dj, ' has finished', np.mean(res))
 
 
 def apply_thresholds(image, lower=5, upper=20):
@@ -131,7 +190,7 @@ def apply_thresholds(image, lower=5, upper=20):
     return mask_weak, mask_strong
 
 
-def edge_running(weak, strong, k=1):
+def edge_running(weak, strong, k=10):
     row, col = np.where(strong > 1)
     result = np.zeros(strong.shape)
     for i in range(len(row)):
@@ -150,6 +209,21 @@ def edge_running(weak, strong, k=1):
             if found:
                 break
     return result
+
+
+def edge_runner_helper(result, x, y, strong, weak, k):
+    for x_k in range(-k, k):
+        found = False
+        for y_k in range(-k, k):
+            if y < 0 or x < 0 or x >= len(strong[0]) or y >= len(strong) or y + y_k < 0 or y + y_k >= len(strong) \
+                    or x + x_k < 0 or x + x_k >= len(strong[0]):
+                continue
+            if weak[y + y_k][x + x_k] > 0:
+                result[y][x] = 255
+                found = True
+                break
+        if found:
+            break
 
 
 def get_gradient(image):
