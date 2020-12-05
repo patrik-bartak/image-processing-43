@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from scipy import signal
-import itertools
+import time
 
 """
 In this file, you need to define plate_detection function.
@@ -19,6 +19,7 @@ Hints:
 	2. You may need to define two ways for localizing plates(yellow or other colors)
 """
 
+start = 0
 
 def plate_detection(image):
     # Replace the below lines with your code.
@@ -28,6 +29,8 @@ def plate_detection(image):
 
     # https://tajanthan.github.io/cv/docs/anpr.pdf
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
+    global start
+    start = int(round(time.time() * 1000))
 
     original = image.copy()
     epsilon = 0.1
@@ -41,7 +44,7 @@ def plate_detection(image):
         new_image = cv2.bitwise_and(original, original, mask=mask)
         mask = get_plates_by_bounding(new_image)
 
-    print("Next")
+    print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
 
     return [crop(image, mask)]
 
@@ -107,11 +110,15 @@ def canny(image, lower, upper):
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
+    print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Non-maximum suppression - step 3 of Canny
     gradient_thin = non_max_suppression(gradient, direction)
+    print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Double threshold - step 4 of Canny
     weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
+    print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
     result = edge_running(weak_edge, strong_edge, 1)
+    print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
     return np.uint8(result)
 
 
@@ -155,22 +162,22 @@ def non_max_suppression(gradient, d):
 
 
 def apply_thresholds(image, lower=5, upper=20):
-    _, mask_weak = cv2.threshold(image.copy(), lower, 255, cv2.THRESH_BINARY)
+    _, mask_weak = cv2.threshold(image.copy(), lower, upper, cv2.THRESH_BINARY)
     _, mask_strong = cv2.threshold(image.copy(), upper, 255, cv2.THRESH_BINARY)
     return mask_weak, mask_strong
 
 
 def edge_running(weak, strong, k=1):
-    row, col = np.where(strong > 1)
-    result = np.zeros(strong.shape)
+    row, col = np.where(weak > 1)
+    result = strong.copy()
     for i in range(len(row)):
         x = col[i]
         y = row[i]
         for x_k in range(-k, k):
             found = False
             for y_k in range(-k, k):
-                if y < 0 or x < 0 or x >= len(strong[0]) or y >= len(strong) or y + y_k < 0 or y + y_k >= len(strong) \
-                        or x + x_k < 0 or x + x_k >= len(strong[0]):
+                if y < 0 or x < 0 or x >= len(weak[0]) or y >= len(weak) or y + y_k < 0 or y + y_k >= len(weak) \
+                        or x + x_k < 0 or x + x_k >= len(weak[0]):
                     continue
                 if weak[y + y_k][x + x_k] > 0:
                     result[y][x] = 255
@@ -216,8 +223,8 @@ def apply_sobel(image):
     kernel_x[0][0], kernel_x[0][2] = 1, -1
     kernel_x[2][0], kernel_x[2][2] = 1, -1
     kernel_x[1][0], kernel_x[1][2] = 2, -2
-    image2 = np.int64(image.copy())
-    image3 = np.int64(image.copy())
+    image2 = np.int64(image)
+    image3 = np.int64(image)
     return conv2d(image2, kernel_x), conv2d(image3, kernel_y)
 
 
