@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from scipy import signal
-import threading
+import itertools
 
 """
 In this file, you need to define plate_detection function.
@@ -72,7 +72,7 @@ def get_plates_by_bounding(image):
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print('Contours: ', len(contours))
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)
+    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -111,7 +111,7 @@ def canny(image, lower, upper):
     gradient_thin = non_max_suppression(gradient, direction)
     # Double threshold - step 4 of Canny
     weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
-    result = edge_running(weak_edge, strong_edge, 10)
+    result = edge_running(weak_edge, strong_edge, 1)
     return np.uint8(result)
 
 
@@ -132,56 +132,26 @@ def non_max_suppression(gradient, d):
     #             res[i, j] = 0
 
     # print(res)
+    row, col = np.where(gradient > 0)
 
-    for i in range(1, h - 1):
-        for j in range(1, w - 1):
-            if np.abs(d[i, j]) <= np.pi / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] and gradient[i, j] >= gradient[
-                    i, j - 1] else 0
-            elif np.abs(d[i, j]) >= np.pi * 3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] and gradient[i, j] >= gradient[
-                    i - 1, j] else 0
-            elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] and gradient[i, j] >= gradient[
-                    i - 1, j + 1] else 0
-            elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
-                res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] and gradient[i, j] >= gradient[
-                    i - 1, j - 1] else 0
-
-    #     row1, col1 = np.where(np.abs(d) <= np.pi / 8)
-    #     row2, col2 = np.where(np.abs(d) >= np.pi * 3 / 8)
-    #     row3, col3 = np.where(np.logical_and(np.pi * 1 / 8 <= d, d <= np.pi * 3 / 8))
-    #     row4, col4 = np.where(np.logical_and(np.pi * -1 / 8 >= d, d >= np.pi * -3 / 8))
-    #
-    #     t1 = threading.Thread(target=non_max_helper, args=(res, gradient, row1, col1, 0, 1))
-    #     t1.start()
-    #     t2 = threading.Thread(target=non_max_helper, args=(res, gradient, row2, col2, 1, 0))
-    #     t2.start()
-    #     t3 = threading.Thread(target=non_max_helper, args=(res, gradient, row3, col3, 1, -1))
-    #     t3.start()
-    #     t4 = threading.Thread(target=non_max_helper, args=(res, gradient, row4, col4, -1, 1))
-    #     t4.start()
-    #
-    #     t1.join()
-    #     t2.join()
-    #     t3.join()
-    #     t4.join()
-    # #
-    #     print(np.mean(res))
-    return res
-
-
-def non_max_helper(res, gradient, row, col, di, dj):
     for index in range(len(row)):
         i = row[index]
         j = col[index]
-        if not (0 <= i + di < gradient.shape[0] and 0 <= i - di < gradient.shape[0]):
+        if i == 0 or i == h - 1 or j == 0 or j == w - 1:
             continue
-        if not (0 <= j + dj < gradient.shape[1] and 0 <= j - dj < gradient.shape[1]):
-            continue
-        res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + di, j + dj] and gradient[i, j] >= gradient[
-            i - di, j - dj] else 0
-    print(di, dj, ' has finished', np.mean(res))
+        if np.abs(d[i, j]) <= np.pi / 8:
+            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] \
+                                          and gradient[i, j] >= gradient[i, j - 1] else 0
+        elif np.abs(d[i, j]) >= np.pi * 3 / 8:
+            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] \
+                                          and gradient[i, j] >= gradient[i - 1, j] else 0
+        elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
+            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] \
+                                          and gradient[i, j] >= gradient[i - 1, j + 1] else 0
+        elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
+            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] \
+                                          and gradient[i, j] >= gradient[i - 1, j - 1] else 0
+    return res
 
 
 def apply_thresholds(image, lower=5, upper=20):
@@ -190,7 +160,7 @@ def apply_thresholds(image, lower=5, upper=20):
     return mask_weak, mask_strong
 
 
-def edge_running(weak, strong, k=10):
+def edge_running(weak, strong, k=1):
     row, col = np.where(strong > 1)
     result = np.zeros(strong.shape)
     for i in range(len(row)):
