@@ -38,19 +38,15 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
 
         try:
             # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
-            imstack = None
-            for plate in plates:
-                # im = cv2.resize(plate, (100, 500))
-                if imstack is None:
-                    imstack = np.hstack(plate)
-                else:
-                    imstack = np.hstack(imstack, plate)
-            # im = plates[0]#cv2.resize(plates, (1000, 800))
+            im = cv2.resize(plates[0], (500, 100))
+            for i in range(1, len(plates)):
+                im = np.concatenate((im, cv2.resize(plates[i], (500, 100))), axis = 0)
 
-            cv2.imshow('Resulting video', cv2.resize(plates[0], (500, 100)))
+            cv2.imshow('Resulting video', im)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         except:
+            print('No license plate found.')
             continue
 
     cap.release()

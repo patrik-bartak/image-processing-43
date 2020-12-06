@@ -35,7 +35,7 @@ def plate_detection(image):
     original = image.copy()
     epsilon = 0.1
     mask = get_plates_by_bounding(image)
-    if (mask.mean() < epsilon):
+    if mask.mean() < epsilon:
         mask = get_yellow_mask(original)
         kernel = np.ones((5, 5), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
@@ -71,7 +71,7 @@ def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
 
-    image_edges = canny(image, 10, 15)
+    image_edges = canny(image, 40, 50)
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print('Contours: ', len(contours))
@@ -110,19 +110,19 @@ def canny(image, lower, upper):
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
-    print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
+    #print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Non-maximum suppression - step 3 of Canny
-    gradient_thin = non_max_suppression(gradient, direction)
-    print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
+    gradient_thin = non_max_suppression(gradient, direction, lower)
+    #print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Double threshold - step 4 of Canny
     weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
-    print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
+    #print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
     result = edge_running(weak_edge, strong_edge, 1)
-    print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
+    #print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
     return np.uint8(result)
 
 
-def non_max_suppression(gradient, d):
+def non_max_suppression(gradient, d, lower):
     h, w = gradient.shape
     res = np.zeros((h, w))
     # d[np.where(-np.pi/8 <= d <= np.pi/8)]
@@ -139,7 +139,7 @@ def non_max_suppression(gradient, d):
     #             res[i, j] = 0
 
     # print(res)
-    row, col = np.where(gradient > 0)
+    row, col = np.where(gradient >= lower)
 
     for index in range(len(row)):
         i = row[index]
@@ -186,21 +186,6 @@ def edge_running(weak, strong, k=1):
             if found:
                 break
     return result
-
-
-def edge_runner_helper(result, x, y, strong, weak, k):
-    for x_k in range(-k, k):
-        found = False
-        for y_k in range(-k, k):
-            if y < 0 or x < 0 or x >= len(strong[0]) or y >= len(strong) or y + y_k < 0 or y + y_k >= len(strong) \
-                    or x + x_k < 0 or x + x_k >= len(strong[0]):
-                continue
-            if weak[y + y_k][x + x_k] > 0:
-                result[y][x] = 255
-                found = True
-                break
-        if found:
-            break
 
 
 def get_gradient(image):
