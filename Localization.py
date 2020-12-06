@@ -162,7 +162,7 @@ def non_max_suppression(gradient, d, lower):
 
 
 def apply_thresholds(image, lower=5, upper=20):
-    _, mask_weak = cv2.threshold(image.copy(), lower, upper, cv2.THRESH_BINARY)
+    _, mask_weak = cv2.threshold(image.copy(), lower, upper - 1, cv2.THRESH_TOZERO)
     _, mask_strong = cv2.threshold(image.copy(), upper, 255, cv2.THRESH_BINARY)
     return mask_weak, mask_strong
 
