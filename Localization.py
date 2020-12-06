@@ -44,7 +44,7 @@ def plate_detection(image):
         new_image = cv2.bitwise_and(original, original, mask=mask)
         mask = get_plates_by_bounding(new_image)
 
-    print("\t***\tTime needed: ", int(round(time.time() * 1000)) - start, ' ms.')
+    print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
 
     return [crop(image, mask)]
 
@@ -110,15 +110,15 @@ def canny(image, lower, upper):
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
-    print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
+    #print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Non-maximum suppression - step 3 of Canny
     gradient_thin = non_max_suppression(gradient, direction, lower)
-    print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
+    #print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Double threshold - step 4 of Canny
-    edges = apply_thresholds(gradient_thin, lower, upper)
-    print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
-    result = edge_running(edges)
-    print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
+    weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
+    #print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
+    result = edge_running(weak_edge, strong_edge, 1)
+    #print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
     return np.uint8(result)
 
 
@@ -164,13 +164,28 @@ def non_max_suppression(gradient, d, lower):
 def apply_thresholds(image, lower=5, upper=20):
     _, mask_weak = cv2.threshold(image.copy(), lower, upper, cv2.THRESH_BINARY)
     _, mask_strong = cv2.threshold(image.copy(), upper, 255, cv2.THRESH_BINARY)
-    return mask_weak + mask_strong
+    return mask_weak, mask_strong
 
 
-def edge_running(weak):
-    kernel = np.ones((3,3), np.uint8)
-    res = conv2d(weak, kernel)
-    return cv2.threshold(res, 255, 255, cv2.THRESH_BINARY)[1]
+def edge_running(weak, strong, k=1):
+    row, col = np.where(weak > 1)
+    result = strong.copy()
+    for i in range(len(row)):
+        x = col[i]
+        y = row[i]
+        for x_k in range(-k, k):
+            found = False
+            for y_k in range(-k, k):
+                if y < 0 or x < 0 or x >= len(weak[0]) or y >= len(weak) or y + y_k < 0 or y + y_k >= len(weak) \
+                        or x + x_k < 0 or x + x_k >= len(weak[0]):
+                    continue
+                if weak[y + y_k][x + x_k] > 0:
+                    result[y][x] = 255
+                    found = True
+                    break
+            if found:
+                break
+    return result
 
 
 def get_gradient(image):
