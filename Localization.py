@@ -21,6 +21,7 @@ Hints:
 
 start = 0
 
+
 def plate_detection(image):
     # Replace the below lines with your code.
     # https://stackoverflow.com/questions/57262974/tracking-yellow-color-object-with-opencv-python
@@ -35,6 +36,7 @@ def plate_detection(image):
     original = image.copy()
     epsilon = 0.1
     mask = get_plates_by_bounding(image)
+    return [mask]
     if mask.mean() < epsilon:
         mask = get_yellow_mask(original)
         kernel = np.ones((5, 5), np.uint8)
@@ -53,7 +55,7 @@ def crop(image, mask):
     return get_segment_crop(image, mask=mask)
 
 
-def get_segment_crop(img,tol=0, mask=None):
+def get_segment_crop(img, tol=0, mask=None):
     if mask is None:
         mask = img > tol
     return img[np.ix_(mask.any(1), mask.any(0))]
@@ -71,7 +73,8 @@ def get_plates_by_bounding(image):
     # https://www.youtube.com/watch?v=UgGLo_QRHJ8
     all_plates = []
 
-    image_edges = canny(image, 40, 50)
+    image_edges = canny(image, 00, 00)
+    return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print('Contours: ', len(contours))
@@ -110,19 +113,19 @@ def canny(image, lower, upper):
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
-    #print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
+    # print("Gradient: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Non-maximum suppression - step 3 of Canny
-    gradient_thin = non_max_suppression(gradient, direction, lower)
-    #print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
+    gradient_thin = non_max_suppression(gradient, direction)
+    # print("Thinning: ", int(round(time.time() * 1000)) - start, ' ms.')
     # Double threshold - step 4 of Canny
-    weak_edge, strong_edge = apply_thresholds(gradient_thin, lower, upper)
-    #print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
-    result = edge_running(weak_edge, strong_edge, 1)
-    #print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
+    edges = apply_thresholds(gradient_thin, lower, upper)
+    # print("Edge thresholds: ", int(round(time.time() * 1000)) - start, ' ms.')
+    result = edge_running(edges)
+    # print("Edge running: ", int(round(time.time() * 1000)) - start, ' ms.')
     return np.uint8(result)
 
 
-def non_max_suppression(gradient, d, lower):
+def non_max_suppression(gradient, d, lower=10):
     h, w = gradient.shape
     res = np.zeros((h, w))
     # d[np.where(-np.pi/8 <= d <= np.pi/8)]
@@ -139,53 +142,151 @@ def non_max_suppression(gradient, d, lower):
     #             res[i, j] = 0
 
     # print(res)
-    row, col = np.where(gradient >= lower)
+    # row, col = np.where(gradient >= 10)
+    #
+    # for index in range(len(row)):
+    #     i = row[index]
+    #     j = col[index]
+    #     if i == 0 or i == h - 1 or j == 0 or j == w - 1:
+    #         continue
+    #     if np.abs(d[i, j]) <= np.pi / 8:
+    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] \
+    #                                       and gradient[i, j] >= gradient[i, j - 1] else 0
+    #     elif np.abs(d[i, j]) >= np.pi * 3 / 8:
+    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] \
+    #                                       and gradient[i, j] >= gradient[i - 1, j] else 0
+    #     elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
+    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] \
+    #                                       and gradient[i, j] >= gradient[i - 1, j + 1] else 0
+    #     elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
+    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] \
+    #                                       and gradient[i, j] >= gradient[i - 1, j - 1] else 0
+    # return res
 
-    for index in range(len(row)):
-        i = row[index]
-        j = col[index]
-        if i == 0 or i == h - 1 or j == 0 or j == w - 1:
-            continue
-        if np.abs(d[i, j]) <= np.pi / 8:
-            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] \
-                                          and gradient[i, j] >= gradient[i, j - 1] else 0
-        elif np.abs(d[i, j]) >= np.pi * 3 / 8:
-            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] \
-                                          and gradient[i, j] >= gradient[i - 1, j] else 0
-        elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
-            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] \
-                                          and gradient[i, j] >= gradient[i - 1, j + 1] else 0
-        elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
-            res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] \
-                                          and gradient[i, j] >= gradient[i - 1, j - 1] else 0
-    return res
+    d_tilt_down = d.copy()
+    d_tilt_down[np.logical_and(np.pi * -1 / 8 >= d_tilt_down, d_tilt_down >= np.pi * -3 / 8)] = 255
+    d_tilt_down[d_tilt_down != 255] = 0
+    d_tilt_down = np.uint8(d_tilt_down)
 
+    d_tilt_up = d.copy()
+    d_tilt_up[np.logical_and(np.pi * 1 / 8 <= d_tilt_up, d_tilt_up <= np.pi * 3 / 8)] = 255
+    d_tilt_up[d_tilt_up != 255] = 0
+    d_tilt_up = np.uint8(d_tilt_up)
+
+    d_up = d.copy()
+    d_up[np.abs(d_up) >= np.pi * 3 / 8] = 255
+    d_up[d_up != 255] = 0
+    d_up = np.uint8(d_up)
+
+    d_hor = d.copy()
+    d_hor[np.abs(d_hor) <= np.pi / 8] = 255
+    d_hor[d_hor != 255] = 0
+    d_hor = np.uint8(d_hor)
+
+    # -1 0 0
+    # 0 1 0
+    # 0 0 0
+    tiltDown_a = np.zeros((3, 3))
+    tiltDown_a[0][0] = -1
+    tiltDown_a[1][1] = 1
+
+    # 0 0 0
+    # 0 1 0
+    # 0 0 -1
+    tiltDown_b = np.zeros((3, 3))
+    tiltDown_b[2][2] = -1
+    tiltDown_b[1][1] = 1
+
+    # 0 0 0
+    # 0 1 0
+    # -1 0 0
+    tiltUp_a = np.zeros((3, 3))
+    tiltUp_a[2][0] = -1
+    tiltUp_a[1][1] = 1
+
+    # 0 0 -1
+    # 0 1 0
+    # 0 0 0
+    tiltUp_b = np.zeros((3, 3))
+    tiltUp_b[0][2] = -1
+    tiltUp_b[1][1] = 1
+
+    # 0 0 0
+    # 0 1 0
+    # 0 -1 0
+    up_a = np.zeros((3, 3))
+    up_a[2][1] = -1
+    up_a[1][1] = 1
+
+    # 0 -1 0
+    # 0 1 0
+    # 0 0 0
+    up_b = np.zeros((3, 3))
+    up_b[0][1] = -1
+    up_b[1][1] = 1
+
+    # 0 0 0
+    # 0 1 -1
+    # 0 0 0
+    hor_a = np.zeros((3, 3))
+    hor_a[1][2] = -1
+    hor_a[1][1] = 1
+
+    # 0 0 0
+    # -1 1 0
+    # 0 0 0
+    hor_b = np.zeros((3, 3))
+    hor_b[1][0] = -1
+    hor_b[1][1] = 1
+
+    tD_a = cv2.filter2D(np.float64(gradient.copy()), -1, tiltDown_a)
+    tU_a = cv2.filter2D(np.float64(gradient.copy()), -1, tiltUp_a)
+    u_a = cv2.filter2D(np.float64(gradient.copy()), -1, up_a)
+    h_a = cv2.filter2D(np.float64(gradient.copy()), -1, hor_a)
+
+    tD_b = cv2.filter2D(np.float64(gradient.copy()), -1, tiltDown_b)
+    tU_b = cv2.filter2D(np.float64(gradient.copy()), -1, tiltUp_b)
+    u_b = cv2.filter2D(np.float64(gradient.copy()), -1, up_b)
+    h_b = cv2.filter2D(np.float64(gradient.copy()), -1, hor_b)
+
+    _, tD_a = cv2.threshold(tD_a, 0, 255, cv2.THRESH_BINARY)
+    _, tU_a = cv2.threshold(tU_a, 0, 255, cv2.THRESH_BINARY)
+    _, u_a = cv2.threshold(u_a, 0, 255, cv2.THRESH_BINARY)
+    _, h_a = cv2.threshold(h_a, 0, 255, cv2.THRESH_BINARY)
+
+    _, tD_b = cv2.threshold(tD_b, 0, 255, cv2.THRESH_BINARY)
+    _, tU_b = cv2.threshold(tU_b, 0, 255, cv2.THRESH_BINARY)
+    _, u_b = cv2.threshold(u_b, 0, 255, cv2.THRESH_BINARY)
+    _, h_b = cv2.threshold(h_b, 0, 255, cv2.THRESH_BINARY)
+
+    tD = cv2.bitwise_and(tD_a, tD_b)
+    tU = cv2.bitwise_and(tU_a, tU_b)
+    u = cv2.bitwise_and(u_a, u_b)
+    h = cv2.bitwise_and(h_a, h_b)
+
+    final1 = cv2.bitwise_and(tD, tD, mask=d_tilt_down)
+    final2 = cv2.bitwise_and(tU, tU, mask=d_tilt_up)
+    final3 = cv2.bitwise_and(u, u, mask=d_up)
+    final4 = cv2.bitwise_and(h, h, mask=d_hor)
+
+    final = np.uint8(np.clip(cv2.bitwise_or(cv2.bitwise_or(final1, final2), cv2.bitwise_or(final3, final4)), 0, 255))
+    result = cv2.bitwise_and(gradient.copy(), gradient.copy(), mask=final)
+    return result
 
 def apply_thresholds(image, lower=5, upper=20):
     _, mask_weak = cv2.threshold(image.copy(), lower, upper - 1, cv2.THRESH_TOZERO)
     _, mask_strong = cv2.threshold(image.copy(), upper, 255, cv2.THRESH_BINARY)
-    return mask_weak, mask_strong
+    return mask_weak + mask_strong
 
 
-def edge_running(weak, strong, k=1):
-    row, col = np.where(weak > 1)
-    result = strong.copy()
-    for i in range(len(row)):
-        x = col[i]
-        y = row[i]
-        for x_k in range(-k, k):
-            found = False
-            for y_k in range(-k, k):
-                if y < 0 or x < 0 or x >= len(weak[0]) or y >= len(weak) or y + y_k < 0 or y + y_k >= len(weak) \
-                        or x + x_k < 0 or x + x_k >= len(weak[0]):
-                    continue
-                if weak[y + y_k][x + x_k] > 0:
-                    result[y][x] = 255
-                    found = True
-                    break
-            if found:
-                break
-    return result
+def edge_running(edges):
+    kernel = np.ones((3, 3))
+    first = cv2.filter2D(edges, -1, kernel)
+    second = np.clip(first, a_min=0, a_max=255)
+    res = np.uint8(second)
+    final = np.uint8(cv2.threshold(res, 200, 255, cv2.THRESH_BINARY)[1])
+    temp = np.uint8(cv2.threshold(edges, 1, 255, cv2.THRESH_BINARY)[1])
+    return cv2.bitwise_and(final, temp)
 
 
 def get_gradient(image):
@@ -194,6 +295,7 @@ def get_gradient(image):
     # Gradient magnitude
     g = np.uint8(np.sqrt(np.power(g_x, 2) + np.power(g_y, 2)))
     # Gradient orientation
+    g_x[g_x == 0] = 0.0001
     theta = np.arctan(g_y / g_x)
     return g, theta
 
