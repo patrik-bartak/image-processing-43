@@ -274,15 +274,6 @@ def non_max_suppression(gradient, d, lower=10):
 
     h_b[h_b > 0] = 255
     h_b[h_b <= 0] = 0
-    # _, tD_a = cv2.threshold(tD_a, 0, 255, cv2.THRESH_BINARY)
-    # _, tU_a = cv2.threshold(tU_a, 0, 255, cv2.THRESH_BINARY)
-    # _, u_a = cv2.threshold(u_a, 0, 255, cv2.THRESH_BINARY)
-    # _, h_a = cv2.threshold(h_a, 0, 255, cv2.THRESH_BINARY)
-    #
-    # _, tD_b = cv2.threshold(tD_b, 0, 255, cv2.THRESH_BINARY)
-    # _, tU_b = cv2.threshold(tU_b, 0, 255, cv2.THRESH_BINARY)
-    # _, u_b = cv2.threshold(u_b, 0, 255, cv2.THRESH_BINARY)
-    # _, h_b = cv2.threshold(h_b, 0, 255, cv2.THRESH_BINARY)
 
     tD = cv2.bitwise_and(tD_a, tD_b)
     tU = cv2.bitwise_and(tU_a, tU_b)
@@ -340,14 +331,14 @@ def apply_sobel(image):
     kernel_x[0][0], kernel_x[0][2] = 1, -1
     kernel_x[2][0], kernel_x[2][2] = 1, -1
     kernel_x[1][0], kernel_x[1][2] = 2, -2
-    image2 = np.int64(image)
-    image3 = np.int64(image)
+    image2 = np.float64(image)
+    image3 = np.float64(image)
     return conv2d(image2, kernel_x), conv2d(image3, kernel_y)
 
 
 # https://stackoverflow.com/questions/43086557/convolve2d-just-by-using-numpy
 def conv2d(image, kernel):
-    return signal.convolve2d(image, kernel, mode='same')
+    return cv2.filter2D(image, -1, kernel)#signal.convolve2d(image, kernel, mode='same')
 
 
 def check(points):
