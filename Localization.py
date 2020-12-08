@@ -36,7 +36,7 @@ def plate_detection(image):
     original = image.copy()
     epsilon = 0.1
     mask = get_plates_by_bounding(image)
-    return [mask]
+    #return [mask]
     if mask.mean() < epsilon:
         mask = get_yellow_mask(original)
         kernel = np.ones((5, 5), np.uint8)
@@ -74,7 +74,7 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = canny(image, 00, 00)
-    return image_edges
+    #return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print('Contours: ', len(contours))
@@ -126,8 +126,8 @@ def canny(image, lower, upper):
 
 
 def non_max_suppression(gradient, d, lower=10):
-    h, w = gradient.shape
-    res = np.zeros((h, w))
+    height, width = gradient.shape
+    res = np.zeros((height, width))
     # d[np.where(-np.pi/8 <= d <= np.pi/8)]
     # rows, cols = np.where(np.abs(d) > np.pi * 3 / 8)
 
@@ -142,12 +142,12 @@ def non_max_suppression(gradient, d, lower=10):
     #             res[i, j] = 0
 
     # print(res)
-    # row, col = np.where(gradient >= 10)
+    # row, col = np.where(gradient >= 0)
     #
     # for index in range(len(row)):
     #     i = row[index]
     #     j = col[index]
-    #     if i == 0 or i == h - 1 or j == 0 or j == w - 1:
+    #     if i == 0 or i == height - 1 or j == 0 or j == width - 1:
     #         continue
     #     if np.abs(d[i, j]) <= np.pi / 8:
     #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] \
@@ -183,61 +183,63 @@ def non_max_suppression(gradient, d, lower=10):
     d_hor[d_hor != 255] = 0
     d_hor = np.uint8(d_hor)
 
+    epsilon = 0.2
+
     # -1 0 0
     # 0 1 0
     # 0 0 0
     tiltDown_a = np.zeros((3, 3))
     tiltDown_a[0][0] = -1
-    tiltDown_a[1][1] = 1
+    tiltDown_a[1][1] = 1 + epsilon
 
     # 0 0 0
     # 0 1 0
     # 0 0 -1
     tiltDown_b = np.zeros((3, 3))
     tiltDown_b[2][2] = -1
-    tiltDown_b[1][1] = 1
+    tiltDown_b[1][1] = 1 + epsilon
 
     # 0 0 0
     # 0 1 0
     # -1 0 0
     tiltUp_a = np.zeros((3, 3))
     tiltUp_a[2][0] = -1
-    tiltUp_a[1][1] = 1
+    tiltUp_a[1][1] = 1 + epsilon
 
     # 0 0 -1
     # 0 1 0
     # 0 0 0
     tiltUp_b = np.zeros((3, 3))
     tiltUp_b[0][2] = -1
-    tiltUp_b[1][1] = 1
+    tiltUp_b[1][1] = 1 + epsilon
 
     # 0 0 0
     # 0 1 0
     # 0 -1 0
     up_a = np.zeros((3, 3))
     up_a[2][1] = -1
-    up_a[1][1] = 1
+    up_a[1][1] = 1 + epsilon
 
     # 0 -1 0
     # 0 1 0
     # 0 0 0
     up_b = np.zeros((3, 3))
     up_b[0][1] = -1
-    up_b[1][1] = 1
+    up_b[1][1] = 1 + epsilon
 
     # 0 0 0
     # 0 1 -1
     # 0 0 0
     hor_a = np.zeros((3, 3))
     hor_a[1][2] = -1
-    hor_a[1][1] = 1
+    hor_a[1][1] = 1 + epsilon
 
     # 0 0 0
     # -1 1 0
     # 0 0 0
     hor_b = np.zeros((3, 3))
     hor_b[1][0] = -1
-    hor_b[1][1] = 1
+    hor_b[1][1] = 1 + epsilon
 
     tD_a = cv2.filter2D(np.float64(gradient.copy()), -1, tiltDown_a)
     tU_a = cv2.filter2D(np.float64(gradient.copy()), -1, tiltUp_a)
@@ -249,15 +251,38 @@ def non_max_suppression(gradient, d, lower=10):
     u_b = cv2.filter2D(np.float64(gradient.copy()), -1, up_b)
     h_b = cv2.filter2D(np.float64(gradient.copy()), -1, hor_b)
 
-    _, tD_a = cv2.threshold(tD_a, 0, 255, cv2.THRESH_BINARY)
-    _, tU_a = cv2.threshold(tU_a, 0, 255, cv2.THRESH_BINARY)
-    _, u_a = cv2.threshold(u_a, 0, 255, cv2.THRESH_BINARY)
-    _, h_a = cv2.threshold(h_a, 0, 255, cv2.THRESH_BINARY)
+    tD_a[tD_a > 0] = 255
+    tD_a[tD_a <= 0] = 0
 
-    _, tD_b = cv2.threshold(tD_b, 0, 255, cv2.THRESH_BINARY)
-    _, tU_b = cv2.threshold(tU_b, 0, 255, cv2.THRESH_BINARY)
-    _, u_b = cv2.threshold(u_b, 0, 255, cv2.THRESH_BINARY)
-    _, h_b = cv2.threshold(h_b, 0, 255, cv2.THRESH_BINARY)
+    tD_b[tD_b > 0] = 255
+    tD_b[tD_b <= 0] = 0
+
+    tU_a[tU_a > 0] = 255
+    tU_a[tU_a <= 0] = 0
+
+    tU_b[tU_b > 0] = 255
+    tU_b[tU_b <= 0] = 0
+
+    u_a[u_a > 0] = 255
+    u_a[u_a <= 0] = 0
+
+    u_b[u_b > 0] = 255
+    u_b[u_b <= 0] = 0
+
+    h_a[h_a > 0] = 255
+    h_a[h_a <= 0] = 0
+
+    h_b[h_b > 0] = 255
+    h_b[h_b <= 0] = 0
+    # _, tD_a = cv2.threshold(tD_a, 0, 255, cv2.THRESH_BINARY)
+    # _, tU_a = cv2.threshold(tU_a, 0, 255, cv2.THRESH_BINARY)
+    # _, u_a = cv2.threshold(u_a, 0, 255, cv2.THRESH_BINARY)
+    # _, h_a = cv2.threshold(h_a, 0, 255, cv2.THRESH_BINARY)
+    #
+    # _, tD_b = cv2.threshold(tD_b, 0, 255, cv2.THRESH_BINARY)
+    # _, tU_b = cv2.threshold(tU_b, 0, 255, cv2.THRESH_BINARY)
+    # _, u_b = cv2.threshold(u_b, 0, 255, cv2.THRESH_BINARY)
+    # _, h_b = cv2.threshold(h_b, 0, 255, cv2.THRESH_BINARY)
 
     tD = cv2.bitwise_and(tD_a, tD_b)
     tU = cv2.bitwise_and(tU_a, tU_b)
@@ -269,9 +294,14 @@ def non_max_suppression(gradient, d, lower=10):
     final3 = cv2.bitwise_and(u, u, mask=d_up)
     final4 = cv2.bitwise_and(h, h, mask=d_hor)
 
-    final = np.uint8(np.clip(cv2.bitwise_or(cv2.bitwise_or(final1, final2), cv2.bitwise_or(final3, final4)), 0, 255))
-    result = cv2.bitwise_and(gradient.copy(), gradient.copy(), mask=final)
+    final = np.uint8(cv2.bitwise_or(cv2.bitwise_or(final1, final2), cv2.bitwise_or(final3, final4)))
+    result = np.uint8(cv2.bitwise_and(gradient.copy(), gradient.copy(), mask=final))
+    result[0, :] = 0
+    result[:, 0] = 0
+    result[height - 1, :] = 0
+    result[:, width - 1] = 0
     return result
+
 
 def apply_thresholds(image, lower=5, upper=20):
     _, mask_weak = cv2.threshold(image.copy(), lower, upper - 1, cv2.THRESH_TOZERO)
