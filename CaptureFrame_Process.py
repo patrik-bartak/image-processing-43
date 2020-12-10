@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import Localization
 import Recognize
+import numpy as np
 
 """
 In this file, you will define your own CaptureFrame_Process funtion. In this function,
@@ -17,5 +18,36 @@ Inputs:(three)
 	3. save_path: final .csv file path
 Output: None
 """
+
+
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
-    pass
+    # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
+    cap = cv2.VideoCapture(file_path)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        if frame is None:
+            break
+
+        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        plates = Localization.plate_detection(frame)
+
+        if plates is None or len(plates) == 0:
+            continue
+
+        try:
+            # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
+            im = cv2.resize(plates[0], (500, 100))
+            for i in range(1, len(plates)):
+                im = np.concatenate((im, cv2.resize(plates[i], (500, 100))), axis = 0)
+
+            cv2.imshow('Resulting video', im)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        except:
+            print('No license plate found.')
+            continue
+
+    cap.release()
+    cv2.destroyAllWindows()
