@@ -35,20 +35,43 @@ def plate_detection(image):
 
     original = image.copy()
     epsilon = 0.1
-    mask = get_plates_by_bounding(image)
-    #return [mask]
-    if mask.mean() < epsilon:
+    corner_coords_arr = get_plates_by_bounding(image)
+
+    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+    cv2.drawContours(mask, corner_coords_arr, 0, 255, -1)
+
+    if mask.mean() < epsilon or len(corner_coords_arr) == 0:
         mask = get_yellow_mask(original)
         kernel = np.ones((5, 5), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-
         new_image = cv2.bitwise_and(original, original, mask=mask)
-        mask = get_plates_by_bounding(new_image)
+        corner_coords_arr = get_plates_by_bounding(new_image)
+        if len(corner_coords_arr) == 0:
+            return
 
-    print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
+    for coords in corner_coords_arr:
+        coords = np.reshape(coords, (4, 2))
+        coords = orient_corners(coords)
+        M = cv2.getPerspectiveTransform(np.float32(coords), np.float32([[0, 0], [480, 0], [480, 640], [0, 640]]))
+        plate = cv2.warpPerspective(image, M, (480, 640))
+        print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
+        return [plate]
 
-    return [crop(image, mask)]
+
+def orient_corners(c):
+    tl, tr, br, bl = c
+    # Flip plate if mirrored along y axis
+    if tl[0] > tr[0]:
+        tl, tr = tr, tl
+    if bl[0] > br[0]:
+        bl, br = br, bl
+    # Flip plate if mirrored along x axis
+    if tl[1] > bl[1]:
+        tl, bl = bl, tl
+    if tr[1] > br[1]:
+        tr, br = br, tr
+    return tl, tr, br, bl
 
 
 def crop(image, mask):
@@ -86,12 +109,8 @@ def get_plates_by_bounding(image):
         # all_plates.append(all_edges)
         if len(all_edges) == 4 and check(all_edges):
             all_plates.append(all_edges)
-
-    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-    if len(all_plates) == 0:
-        return mask
-    cv2.drawContours(mask, all_plates, 0, 255, -1)
-    return mask
+    # (i, 4, 2) array of corner coordinates for i plates in the image
+    return all_plates
 
 
 def print_diff(arr1, arr2):
