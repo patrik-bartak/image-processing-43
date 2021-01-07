@@ -23,7 +23,7 @@ Output: None
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     cap = cv2.VideoCapture(file_path)
-
+    count = 0 # for file saving
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -36,12 +36,16 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if plates is None or len(plates) == 0:
             continue
 
+        for i in range(0, len(plates)):
+            plates = cv2.resize(plates[0], (500, 100))
+
+        plates = Recognize.segment_and_recognize(plates)
+
         try:
             # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
-            im = cv2.resize(plates[0], (500, 100))
-            for i in range(1, len(plates)):
-                im = np.concatenate((im, cv2.resize(plates[i], (500, 100))), axis = 0)
-
+            im = plates
+            count += 1 # for file saving
+            # cv2.imwrite("images/out/img-{}.jpg".format(count), im)
             cv2.imshow('Resulting video', im)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

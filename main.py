@@ -2,6 +2,7 @@ import argparse
 import os
 import CaptureFrame_Process
 import numpy
+import time
 
 
 # define the required arguments: video path(file_path), sample frequency(second), saving path for final result table
@@ -24,4 +25,6 @@ if __name__ == '__main__':
         output_path = args.output_path
     file_path = args.file_path
     sample_frequency = args.sample_frequency
+    time_start = int(round(time.time()))
     CaptureFrame_Process.CaptureFrame_Process(file_path, sample_frequency, output_path)
+    print("* TOTAL Time taken: ", int(round(time.time())) - time_start, ' s.')
