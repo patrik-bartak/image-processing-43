@@ -37,21 +37,18 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             continue
 
         for i in range(0, len(plates)):
-            plates = cv2.resize(plates[0], (500, 100))
-
-        plates = Recognize.segment_and_recognize(plates)
-
-        try:
-            # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
-            im = plates
-            count += 1 # for file saving
-            # cv2.imwrite("images/out/img-{}.jpg".format(count), im)
-            cv2.imshow('Resulting video', im)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        except:
-            print('No license plate found.')
-            continue
+            plates[i] = cv2.resize(plates[i], (500, 100))
+            plate = Recognize.segment_and_recognize(plates[i])
+            try:
+                # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
+                count += 1  # for file saving
+                # cv2.imwrite("images/out/img-{}.jpg".format(count), plate)
+                cv2.imshow('Resulting video', plate)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+            except:
+                print('No license plate found.')
+                continue
 
     cap.release()
     cv2.destroyAllWindows()

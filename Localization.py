@@ -33,6 +33,8 @@ def plate_detection(image):
     global start
     start = int(round(time.time() * 1000))
 
+    detected_plates = []
+
     original = image.copy()
     epsilon = 0.1
     corner_coords_arr = get_plates_by_bounding(image)
@@ -65,7 +67,8 @@ def plate_detection(image):
                 cv2.floodFill(plate_eroded, None, (a, b), 0, 200, 200)
         plate = cv2.dilate(plate_eroded, kernel, iterations=2)
         print(np.count_nonzero(mask) / np.array(mask).size)
-        return [plate]
+        detected_plates.append(plate)
+    return detected_plates
 
 
 def binarize(plate):
