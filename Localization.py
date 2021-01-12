@@ -144,13 +144,20 @@ def print_diff(arr1, arr2):
         print(res)
 
 
+# FIND CONTOURS
+
+def findContours(edges):
+    return
+
+# CANNY
+
 # https://docs.opencv.org/3.4/da/d5c/tutorial_canny_detector.html
 def canny(image, lower, upper):
     # Making the image greyscale
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)
+    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150) # TODO
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
@@ -168,41 +175,6 @@ def canny(image, lower, upper):
 
 def non_max_suppression(gradient, d, lower=10):
     height, width = gradient.shape
-    res = np.zeros((height, width))
-    # d[np.where(-np.pi/8 <= d <= np.pi/8)]
-    # rows, cols = np.where(np.abs(d) > np.pi * 3 / 8)
-
-    # rows, cols = np.where(np.abs(d) <= np.pi / 8)
-    # res[rows, cols] = gradient[rows, cols]
-
-    # for i in range(1, h - 1):
-    #     for j in range(1, w - 1):
-    #         if gradient[i, j] >= gradient[i, j+1] and gradient[i, j] >= gradient[i, j-1]:
-    #             res[i, j] = gradient[i, j]
-    #         else:
-    #             res[i, j] = 0
-
-    # print(res)
-    # row, col = np.where(gradient >= 0)
-    #
-    # for index in range(len(row)):
-    #     i = row[index]
-    #     j = col[index]
-    #     if i == 0 or i == height - 1 or j == 0 or j == width - 1:
-    #         continue
-    #     if np.abs(d[i, j]) <= np.pi / 8:
-    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i, j + 1] \
-    #                                       and gradient[i, j] >= gradient[i, j - 1] else 0
-    #     elif np.abs(d[i, j]) >= np.pi * 3 / 8:
-    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j] \
-    #                                       and gradient[i, j] >= gradient[i - 1, j] else 0
-    #     elif np.pi * 1 / 8 <= d[i, j] <= np.pi * 3 / 8:
-    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j - 1] \
-    #                                       and gradient[i, j] >= gradient[i - 1, j + 1] else 0
-    #     elif np.pi * -1 / 8 >= d[i, j] >= np.pi * -3 / 8:
-    #         res[i, j] = gradient[i, j] if gradient[i, j] >= gradient[i + 1, j + 1] \
-    #                                       and gradient[i, j] >= gradient[i - 1, j - 1] else 0
-    # return res
 
     d_tilt_down = d.copy()
     d_tilt_down[np.logical_and(np.pi * -1 / 8 >= d_tilt_down, d_tilt_down >= np.pi * -3 / 8)] = 255
@@ -379,8 +351,10 @@ def apply_sobel(image):
 
 # https://stackoverflow.com/questions/43086557/convolve2d-just-by-using-numpy
 def conv2d(image, kernel):
-    return cv2.filter2D(image, -1, kernel)#signal.convolve2d(image, kernel, mode='same')
+    return cv2.filter2D(image, -1, kernel)
 
+
+# OTHER HELPER FUNCTIONS
 
 def check(points):
     edges = []
