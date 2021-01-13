@@ -100,18 +100,21 @@ def segment_and_recognize(plate):
 
 
 def recognize(characters):
-    epsilon = 0.2  # percentage of match
+    epsilon = 0.1  # percentage of match
     result = ""
     for char in characters:
         max = 0
         chosen = None
         for i in range(len(matches)):
             match = cv2.resize(cv2.cvtColor(matches[i], cv2.COLOR_BGR2GRAY), (100, 85))
-            char = cv2.resize(char, (100, 85))
-            percent = np.sum(cv2.bitwise_and(char, match)) / np.sum(match)
-            if (percent > max):
+            char = cv2.threshold(cv2.resize(char, (100, 85)), 50, 255, cv2.THRESH_BINARY)[1]
+            percent = np.sum(cv2.bitwise_and(char, match)) / np.sum(cv2.bitwise_or(char, match))
+            #percent -= np.sum(cv2.bitwise_xor(char, match)) / np.sum(cv2.bitwise_or(char, match))
+            if percent > max:
                 max = percent
                 chosen = index[i]
-        if (max > epsilon):
+        if max > epsilon:
             result += chosen
+        else:
+            result += "_"
     return result
