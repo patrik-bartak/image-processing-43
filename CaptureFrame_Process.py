@@ -43,7 +43,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                 # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
                 count += 1  # for file saving
                 # cv2.imwrite("images/out/img-{}.jpg".format(count), plate)
-                cv2.imshow('Resulting video', plate)
+                cv2.imshow('Resulting video', plate * 255)
                 print(string)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

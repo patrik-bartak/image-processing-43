@@ -1,53 +1,99 @@
 import cv2
 import numpy as np
-import os
-import matplotlib.pyplot as plt
 
-matches = [cv2.imread("SameSizeLetters/1.bmp"),
-           cv2.imread("SameSizeLetters/2.bmp"),
-           cv2.imread("SameSizeLetters/3.bmp"),
-           cv2.imread("SameSizeLetters/4.bmp"),
-           cv2.imread("SameSizeLetters/5.bmp"),
-           cv2.imread("SameSizeLetters/6.bmp"),
-           cv2.imread("SameSizeLetters/7.bmp"),
-           cv2.imread("SameSizeLetters/8.bmp"),
-           cv2.imread("SameSizeLetters/9.bmp"),
-           cv2.imread("SameSizeLetters/10.bmp"),
-           cv2.imread("SameSizeLetters/11.bmp"),
-           cv2.imread("SameSizeLetters/12.bmp"),
-           cv2.imread("SameSizeLetters/13.bmp"),
-           cv2.imread("SameSizeLetters/14.bmp"),
-           cv2.imread("SameSizeLetters/15.bmp"),
-           cv2.imread("SameSizeLetters/16.bmp"),
-           cv2.imread("SameSizeLetters/17.bmp"),
-           cv2.imread("SameSizeNumbers/0.bmp"),
-           cv2.imread("SameSizeNumbers/1.bmp"),
-           cv2.imread("SameSizeNumbers/2.bmp"),
-           cv2.imread("SameSizeNumbers/3.bmp"),
-           cv2.imread("SameSizeNumbers/4.bmp"),
-           cv2.imread("SameSizeNumbers/5.bmp"),
-           cv2.imread("SameSizeNumbers/6.bmp"),
-           cv2.imread("SameSizeNumbers/7.bmp"),
-           cv2.imread("SameSizeNumbers/8.bmp"),
-           cv2.imread("SameSizeNumbers/9.bmp")]
+standard = [cv2.imread('templates/LettersStandard/1.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/2.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/3.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/4.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/5.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/6.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/7.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/8.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/9.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/10.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/11.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/12.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/13.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/14.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/15.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/16.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/17.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/0.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/1.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/2.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/3.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/4.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/5.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/6.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/7.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/8.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/9.bmp', cv2.IMREAD_GRAYSCALE)]
+shear_left = [cv2.imread('templates/LettersShearedLeft/1.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/2.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/3.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/4.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/5.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/6.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/7.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/8.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/9.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/10.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/11.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/12.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/13.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/14.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/15.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/16.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/17.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/0.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/1.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/2.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/3.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/4.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/5.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/6.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/7.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/8.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/9.bmp', cv2.IMREAD_GRAYSCALE)]
+shear_right = [cv2.imread('templates/LettersShearedRight/1.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/2.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/3.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/4.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/5.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/6.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/7.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/8.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/9.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/10.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/11.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/12.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/13.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/14.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/15.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/16.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/17.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/0.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/1.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/2.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/3.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/4.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/5.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/6.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/7.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/8.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/9.bmp', cv2.IMREAD_GRAYSCALE)]
 
+templates = [standard, shear_left, shear_right]
 index = ["B", "D", "F", "G", "H", "J", "K",
          "L", "M", "N", "P", "R", "S", "T",
          "V", "X", "Z", "0", "1", "2", "3",
          "4", "5", "6", "7", "8", "9"]
 
-for i in range(len(matches)):
-    match = cv2.cvtColor(matches[i], cv2.COLOR_BGR2GRAY)
-    projected_matches = np.sum(match, axis=0) / 255
-
-    space_eplison = 8 + np.min(projected_matches)
-
-    # replace "spaces" with grey pixels
-    match[:, projected_matches < space_eplison] = np.array(100)
-
-    index_list = [index for index, val in enumerate(projected_matches) if val >= space_eplison]
-
-    matches[i] = matches[i][:, index_list[0]:index_list[-1]]
+for i in range(len(templates)):
+    for j in range(len(templates[0])):
+        templates[i][j] = cv2.threshold(cv2.resize(templates[i][j], (60, 85)), 120, 1, cv2.THRESH_BINARY)[1]
+        # cv2.imshow('template', templates[i][j] * 255)
+        # cv2.waitKey(0)
 
 """
 In this file, you will define your own segment_and_recognize function.
@@ -67,13 +113,14 @@ Hints:
 
 
 def segment_and_recognize(plate):
-    proj = np.sum(plate, axis=0) / 255
+    plate = cv2.threshold(plate, 120, 1, cv2.THRESH_BINARY)[1]
+    proj = np.sum(plate, axis=0)
 
-    space_eplison = 8 + np.min(proj)
-    epsilon = 45
+    space_eplison = 4  # A space must have less than 4 pixels on its vertical projection
+    epsilon = 100  # Only characters with more than epsilon pixels will be kept
 
     # replace "spaces" with grey pixels
-    plate[:, proj < space_eplison] = np.array(100)
+    # plate[:, proj < space_eplison] = np.array(100)
 
     index_list = [index for index, val in enumerate(proj) if val < space_eplison]
 
@@ -83,9 +130,12 @@ def segment_and_recognize(plate):
         if index_list[i] + 1 == index_list[i + 1]:
             continue
 
-        temp = cv2.resize(plate[:, index_list[i]: index_list[i + 1]], (100, 85))
-        if np.mean(temp) < epsilon:
+        temp = plate[:, index_list[i]: index_list[i + 1]]
+        if np.sum(temp) < epsilon:  # sum instead of mean to better keep hyphens
             continue
+        temp = cv2.resize(temp, (60, 85))
+        # print(np.sum(temp))
+
         chars.append(temp)
 
     print("Number of chars segmented: {}".format(len(chars)))
@@ -93,9 +143,12 @@ def segment_and_recognize(plate):
     # print bar plot of vertically projected plate
     # plt.bar(np.arange(500), proj)
     # plt.show()
-    if (len(chars) == 0):
+    if len(chars) == 0:
         return None, None
 
+    crop_horizontal(chars)
+
+    # return np.concatenate(chars, axis=1), recognize(chars)
     return np.concatenate(chars, axis=1), recognize(chars)
 
 
@@ -103,18 +156,50 @@ def recognize(characters):
     epsilon = 0.1  # percentage of match
     result = ""
     for char in characters:
+        if np.sum(char) < 900:
+            result += "-"
+            continue
         max = 0
         chosen = None
-        for i in range(len(matches)):
-            match = cv2.resize(cv2.cvtColor(matches[i], cv2.COLOR_BGR2GRAY), (100, 85))
-            char = cv2.threshold(cv2.resize(char, (100, 85)), 50, 255, cv2.THRESH_BINARY)[1]
-            percent = np.sum(cv2.bitwise_and(char, match)) / np.sum(cv2.bitwise_or(char, match))
-            #percent -= np.sum(cv2.bitwise_xor(char, match)) / np.sum(cv2.bitwise_or(char, match))
-            if percent > max:
-                max = percent
-                chosen = index[i]
+        for i in range(len(templates)):
+            for j in range(len(templates[0])):
+                match = cv2.resize(templates[i][j], (100, 85))
+                char = cv2.resize(char, (100, 85))
+                percent = np.sum(cv2.bitwise_and(char, match)) / np.sum(cv2.bitwise_or(char, match))
+                # percent -= np.sum(cv2.bitwise_xor(char, match)) / np.sum(cv2.bitwise_or(char, match))
+                if percent > max:
+                    max = percent
+                    chosen = index[j]
         if max > epsilon:
             result += chosen
         else:
             result += "_"
     return result
+
+def crop_horizontal(chars):
+    for i in range(len(chars)):
+        if np.sum(chars[i]) < 900:
+            continue
+        proj = np.sum(chars[i], axis=1)
+        # chars[i][proj < 1, :] = np.array(100)
+
+        index_list = [index for index, val in enumerate(proj) if val < 1]
+        if len(index_list) == 0: continue
+        segments = []
+        sizes = []
+        temp = chars[i][0: index_list[0]]
+        if len(temp) > 0:
+            segments.append(temp)
+            sizes.append(len(temp) * len(temp[0]))
+        temp = chars[i][index_list[len(index_list) - 1]: len(chars[i])]
+        if len(temp) > 0:
+            segments.append(temp)
+            sizes.append(len(temp) * len(temp[0]))
+        for j in range(0, len(index_list) - 1):
+            if index_list[j] + 1 == index_list[j + 1]:
+                continue
+            temp = chars[i][index_list[j]: index_list[j + 1]]
+            segments.append(temp)
+            sizes.append(len(temp) * len(temp[0]))
+        if len(segments) == 0: continue
+        chars[i] = cv2.resize(segments[np.argmax(sizes)], (60, 85))
