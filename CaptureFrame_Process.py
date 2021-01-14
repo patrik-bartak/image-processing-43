@@ -23,7 +23,7 @@ Output: None
 def CaptureFrame_Process(file_path, sample_frequency, save_path):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     cap = cv2.VideoCapture(file_path)
-    count = 0 # for file saving
+    count = 0  # for file saving
     while cap.isOpened():
         ret, frame = cap.read()
 
@@ -43,12 +43,17 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                 # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
                 count += 1  # for file saving
                 # cv2.imwrite("images/out/img-{}.jpg".format(count), plate)
-                cv2.imshow('Resulting video', plate * 255)
-                print(string)
+                if not np.max(plate) == 255:
+                    plate = plate * 255
+                cv2.imshow('Resulting video', plate)
+                if string == (None, None):
+                    print("License plate localized but invalid format")
+                else:
+                    print(string)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
             except:
-                print('No license plate found.')
+                print('No license plate localized.')
                 continue
 
     cap.release()

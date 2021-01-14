@@ -112,8 +112,8 @@ Hints:
 """
 
 
-def segment_and_recognize(plate):
-    plate = cv2.threshold(plate, 120, 1, cv2.THRESH_BINARY)[1]
+def segment_and_recognize(original_plate):
+    plate = cv2.threshold(original_plate, 120, 1, cv2.THRESH_BINARY)[1]
     proj = np.sum(plate, axis=0)
 
     space_eplison = 4  # A space must have less than 4 pixels on its vertical projection
@@ -154,7 +154,7 @@ def segment_and_recognize(plate):
     # individual plate length check, and hyphen position check
     plate_string = string_post_processing(plate_string)
 
-    return plate_img, plate_string
+    return original_plate, plate_string
 
 
 def string_post_processing(string):

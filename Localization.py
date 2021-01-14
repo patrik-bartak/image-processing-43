@@ -64,7 +64,7 @@ def plate_detection(image):
         plate_eroded = cv2.erode(plate, kernel, iterations=2)
         for a, b in flood_fill_points:
             if plate_eroded[b, a] != 0:
-                cv2.floodFill(plate_eroded, None, (a, b), 0, 200, 200)
+                cv2.floodFill(plate_eroded, None, (a, b), 0)
         plate = cv2.dilate(plate_eroded, kernel, iterations=2)
         print(np.count_nonzero(mask) / np.array(mask).size)
         detected_plates.append(plate)
@@ -78,6 +78,7 @@ def binarize(plate):
     lower = np.array(0, dtype="uint8")
     upper = np.array(60, dtype="uint8")
     mask = cv2.inRange(plate, lower, upper)
+    # plate = cv2.threshold(plate, 120, 1, cv2.THRESH_BINARY)[1]
     return mask
 
 
