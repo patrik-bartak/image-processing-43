@@ -163,8 +163,8 @@ def recognize(characters):
         chosen = None
         for i in range(len(templates)):
             for j in range(len(templates[0])):
-                match = cv2.resize(templates[i][j], (100, 85))
-                char = cv2.resize(char, (100, 85))
+                match = cv2.resize(templates[i][j], (60, 85))
+                char = cv2.resize(char, (60, 85))
                 percent = np.sum(cv2.bitwise_and(char, match)) / np.sum(cv2.bitwise_or(char, match))
                 # percent -= np.sum(cv2.bitwise_xor(char, match)) / np.sum(cv2.bitwise_or(char, match))
                 if percent > max:
