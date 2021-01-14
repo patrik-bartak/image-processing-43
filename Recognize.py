@@ -149,11 +149,29 @@ def segment_and_recognize(plate):
     crop_horizontal(chars)
 
     # return np.concatenate(chars, axis=1), recognize(chars)
-    return np.concatenate(chars, axis=1), recognize(chars)
+    plate_img, plate_string = np.concatenate(chars, axis=1), recognize(chars)
+
+    # individual plate length check, and hyphen position check
+    plate_string = string_post_processing(plate_string)
+
+    return plate_img, plate_string
+
+
+def string_post_processing(string):
+    str_len = len(string)
+    if str_len < 8:  # Disqualify plates with a length lower than 8
+        return None, None
+    while string[0] == "-":  # If a plate starts with hyphens, remove them
+        string = string[1: str_len]
+        str_len -= 1
+    while string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
+        string = string[0: str_len - 1]
+        str_len -= 1
+    return string
 
 
 def recognize(characters):
-    epsilon = 0.1  # percentage of match
+    epsilon = 0.2  # percentage of match
     result = ""
     for char in characters:
         if np.sum(char) < 900:
@@ -175,6 +193,7 @@ def recognize(characters):
         else:
             result += "_"
     return result
+
 
 def crop_horizontal(chars):
     for i in range(len(chars)):
