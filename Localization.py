@@ -20,7 +20,7 @@ Hints:
 """
 
 start = 0
-flood_fill_points = [(0, 0), (479, 0), (479, 639), (0, 639), (239, 0), (479, 319), (239, 639), (0, 319)]
+flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
 
 def plate_detection(image):
     # Replace the below lines with your code.
@@ -58,6 +58,7 @@ def plate_detection(image):
         M = cv2.getPerspectiveTransform(np.float32(coords), np.float32([[0, 0], [480, 0], [480, 640], [0, 640]]))
         plate = cv2.warpPerspective(image, M, (480, 640))
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
+        plate = cv2.resize(plate, (500, 100))
         plate = binarize(plate)
         kernel = np.ones((3, 3), np.uint8)
         # Erode, flood fill at edges, then dilate
@@ -75,6 +76,7 @@ def binarize(plate):
     # Contrast stretch and threshold
     plate = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
     plate = cv2.equalizeHist(plate)
+    # plate = 255 * (plate - np.min(plate)) / (np.max(plate) - np.min(plate))
     lower = np.array(0, dtype="uint8")
     upper = np.array(60, dtype="uint8")
     mask = cv2.inRange(plate, lower, upper)
@@ -120,6 +122,8 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = canny(image, 0, 0)
+    cv2.imshow('canny', image_edges)
+    cv2.waitKey(1)
     #return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)

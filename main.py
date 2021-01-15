@@ -1,8 +1,7 @@
 import argparse
 import os
+
 import CaptureFrame_Process
-import numpy
-import time
 
 
 # define the required arguments: video path(file_path), sample frequency(second), saving path for final result table
@@ -10,6 +9,7 @@ import time
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--file_path', type=str, default='trainingsvideo.avi')
+    # parser.add_argument('--file_path', type=str, default='TrainingSet/Categorie IV/Video101_2.avi')
     parser.add_argument('--output_path', type=str, default=None)
     parser.add_argument('--sample_frequency', type=int, default=2)
     args = parser.parse_args()
@@ -25,6 +25,4 @@ if __name__ == '__main__':
         output_path = args.output_path
     file_path = args.file_path
     sample_frequency = args.sample_frequency
-    time_start = int(round(time.time()))
     CaptureFrame_Process.CaptureFrame_Process(file_path, sample_frequency, output_path)
-    print("* TOTAL Time taken: ", int(round(time.time())) - time_start, ' s.')
