@@ -50,13 +50,12 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             # if recognition fails to recognize a plate
             if string is None:
                 print("Characters not recognized")
-                cv2.imshow('plate', plate)
-                cv2.waitKey(1)
                 continue
             # if a plate is localized and recognized, do some format verification
             string = individual_format_verification.verify_format(string, False)
             if string is None:
                 print("Recognized plate invalid format")
+                continue
 
             # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
             # count += 1  # for file saving
