@@ -1,25 +1,22 @@
-Date executed: time-01-49-22_date-15-01-2021
-Time taken: * TOTAL Time taken: 369 s.
-Raw num. plates recognized: 56
-CPU used: Intel(R) Core(TM) i5-4460  CPU @ 3.20GHz
+Date executed: date-16-01-2021_time-19-28
+Time taken: * TOTAL Time taken: 413 s.
+Num plates FOUND: 40 out of 60 expected
+Num plates INCORRECT: 2 out of 0 expected
 
 XS-NB-23
 98-THD-4
 23-GSX-6
 72-VGX-6
 99-SZG-5
-14-NJM-9
 14-NJK-9
-14-NJX-9
-M-NJX-9
 24-LB-HT
 68-NS-ND
-68-MS-ND
 97-FB-FP
 67-FP-SJ
 96-LKH-9
 56-JTT-5
 88-BB-TS
+56-JTT-5
 ZD-PB-67
 92-GS-VH
 02-BBG-7
@@ -27,13 +24,9 @@ ZD-PB-67
 93-PXS-9
 43-HNN-2
 43-JS-RT
-43-JS-B
-63-HM--HD
-63-HM-HD
 63-HK-HD
 92-LHR-6
-63-HF--ND
-61HM-HD
+63-HK-HD
 3-VFX-39
 01-XJ-ND
 96-ND-JB
@@ -50,12 +43,5 @@ XH-PN-44
 28-RXT-9
 89-LZ-GX
 05-GH-JS
-72-FP-RV
-72-FP-NV
 12-FP-NV
 1-GMV-33
-J-0MV-331
-1-GHV-331
-GN8520J
-GM852DJ
-GM8520J

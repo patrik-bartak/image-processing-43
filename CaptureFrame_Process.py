@@ -1,7 +1,7 @@
 import time
+import difflib
 from datetime import datetime
 
-import cpuinfo
 import cv2
 import numpy as np
 
@@ -71,21 +71,49 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+    total_time_taken = '* TOTAL Time taken: {} s.'.format(int(round(time.time())) - time_start)
+    print(total_time_taken)
+
+    postprocessing_time_start = int(round(time.time()))
     # perform some batch error correction on the complete output
     final_output = pattern_error_correction.correct_errors(plate_strings)
 
-    total_time_taken = '* TOTAL Time taken: {} s.'.format(int(round(time.time())) - time_start)
-    print(total_time_taken)
+    postprocessing_time_taken = '* POSTPROCESSING Time taken: {} s.'.format(
+        int(round(time.time())) - postprocessing_time_start)
+    print(postprocessing_time_taken)
 
     # toggle writing to file
     write_to_file = True
     if write_to_file:
-        dttime = datetime.today().strftime('date-%d-%m-%Y_time-%H-%M-%S')
-        f = open("out/recognized_plates/{}.txt".format(dttime), "x")
-        f.write("Date executed: {}\nTime taken: {}\nRaw num. plates recognized: {}\nCPU used: {}\n\n"
-                .format(dttime, total_time_taken, len(final_output), cpuinfo.get_cpu_info()['brand_raw']))
-        f.write("\n".join(final_output))
-        f.close()
+        arr_expected = open("plates.txt", "r").read().strip().splitlines()
+        num_correct = np.sum([1 if expected in final_output else 0 for expected in arr_expected])
+        num_incorrect = np.sum([1 if found not in arr_expected else 0 for found in final_output])
+
+        path = "out/recognized_plates/{}.txt"
+        file_out(final_output, path, num_correct, len(arr_expected), num_incorrect, total_time_taken)
+
+        diff = difflib.unified_diff(arr_expected, final_output, fromfile='expected', tofile='actual', lineterm='', n=0)
+        path = "out/plate_diffs/{}.txt"
+        file_out(diff, path, num_correct, len(arr_expected), num_incorrect, total_time_taken)
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def file_out(arr_output, path, num_correct, expected_num_plates, num_incorrect, total_time_taken):
+    str_output = "\n".join(arr_output)
+    dt = datetime.today().strftime('date-%d-%m-%Y_time-%H-%M')
+    f = open(path.format(dt), "x")
+    f.write("Date executed: {}\n"
+            "Time taken: {}\n"
+            "Num plates FOUND: {} out of {} expected\n"
+            "Num plates INCORRECT: {} out of 0 expected\n"
+            "\n{}".format(
+        dt,
+        total_time_taken,
+        num_correct,
+        expected_num_plates,
+        num_incorrect,
+        str_output
+    ))
+    f.close()
