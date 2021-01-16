@@ -29,14 +29,14 @@ def verify_format(string, is_dutch):
 
 def length_check_and_hyphen_correction(string):
     str_len = len(string)
-    if str_len < 8:  # Disqualify plates with a length lower than 8
-        return None
     while string[0] == "-":  # If a plate starts with hyphens, remove them
         string = string[1: str_len]
         str_len -= 1
     while string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
         string = string[0: str_len - 1]
         str_len -= 1
+    if str_len < 8:  # Disqualify plates with a length lower than 8
+        return None
     return string
 
 
