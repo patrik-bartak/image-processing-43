@@ -1,16 +1,41 @@
-dutch_formats = [
-    "XX-99-XX",  # 0
-    "XX-XX-99",  # 1
-    "99-XX-XX",  # 2
-    "99-XXX-9",  # 3
-    "9-XXX-99",  # 4
-    "XX-999-X",  # 5
-    "X-999-XX",  # 6
-    "XXX-99-X",  # 7
-    "X-99-XXX",  # 8
-    "9-XX-999",  # 9
-    "999-XX-9"  # 10
-]
+dutch_formats = {
+    "X": {
+        "X": {
+            "X": "XXX-99-X",
+            "-": {
+                "X": "XX-XX-99",
+                "9": {
+                    "9": {
+                        "9": "XX-999-X",
+                        "-": "XX-99-XX"
+                    }
+                }
+            }
+        },
+        "-": "X-999-XX"
+    },
+    "9": {
+        "9": {
+            "9": "999-XX-9",
+            "-": {
+                "X": {
+                    "X": {
+                        "X": "99-XXX-9",
+                        "-": "99-XX-XX"
+                    }
+                }
+            }
+        },
+        "-": {
+            "X": {
+                "X": {
+                    "X": "9-XXX-99",
+                    "-": "9-XX-999"
+                }
+            }
+        }
+    }
+}
 
 char_set = {"B", "D", "F", "G", "H", "J", "K",
             "L", "M", "N", "P", "R", "S", "T",
@@ -22,17 +47,17 @@ num_set = {"0", "1", "2", "3", "4",
 
 def verify_format(string, is_dutch):
     string = length_check_and_hyphen_correction(string)
-    if string is not None and len(string) == 8 and is_dutch and not is_dutch_format(string):
+    if string is None or len(string) != 8 or not is_dutch_format(string):
         string = None
     return string
 
 
 def length_check_and_hyphen_correction(string):
     str_len = len(string)
-    while string[0] == "-":  # If a plate starts with hyphens, remove them
+    while len(string) > 1 and string[0] == "-":  # If a plate starts with hyphens, remove them
         string = string[1: str_len]
         str_len -= 1
-    while string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
+    while len(string) > 1 and string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
         string = string[0: str_len - 1]
         str_len -= 1
     if str_len < 8:  # Disqualify plates with a length lower than 8
@@ -41,68 +66,31 @@ def length_check_and_hyphen_correction(string):
 
 
 def is_dutch_format(string):
-    if string[0] in char_set:
-        if string[1] in char_set:
-            if string[2] in char_set and string[3] == "-" and string[4] in num_set and string[5] in num_set and string[6] == "-" and string[7] in char_set:
-                return True  # 7
-            elif string[2] == "-":
-                if string[3] in char_set and string[4] in char_set and string[5] == "-" and string[6] in num_set and string[7] in num_set:
-                    return True  # 1
-                elif string[3] in num_set:
-                    if string[4] in num_set:
-                        if string[5] in num_set and string[6] == "-" and string[7] in char_set:
-                            return True  # 5
-                        elif string[5] == "-" and string[6] in char_set and string[7] in char_set:
-                            return True  # 0
-                        else:
-                            return False
-                    else:
-                        return False
-                else:
-                    return False
-            else:
+    return dutch_helper(string, dutch_formats, 0)
+
+
+def dutch_helper(string, dictionary, index):
+    if index >= len(string):
+        return True
+
+    if isinstance(dictionary, str):
+        for i in range(index, len(string)):
+            temp = string[i]
+            if temp in char_set:
+                temp = "X"
+            if temp in num_set:
+                temp = "9"
+            if temp != dictionary[i]:
                 return False
-        elif string[1] in num_set:
-            return None
-        else:
-            if string[2] in num_set and string[3] in num_set:
-                if string[4] in num_set and string[5] == "-" and string[6] in char_set and string[7] in char_set:
-                    return True  # 6
-                elif string[4] == "-" and string[5] in char_set and string[6] in char_set and string[7] in char_set:
-                    return True  # 8
-                else:
-                    return False
-            else:
-                return False
-    elif string[0] in num_set:
-        if string[1] in char_set:
-            return None
-        elif string[1] in num_set:
-            # 23 10
-            if string[2] in num_set and string[3] == "-" and string[4] in char_set and string[5] in char_set and string[6] == "-" and string[7] in num_set:
-                return True  # 10
-            elif string[2] == "-":
-                if string[3] in char_set and string[4] in char_set:
-                    if string[5] in char_set and string[6] == "-" and string[7] in num_set:
-                        return True  # 3
-                    elif string[5] == "-" and string[6] in char_set and string[7] in char_set:
-                        return True  # 2
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                return False
-        else:
-            if string[2] in char_set and string[3] in char_set:
-                if string[4] in char_set and string[5] == "-" and string[6] in num_set and string[7] in num_set:
-                    return True  # 4
-                elif string[4] == "-" and string[5] in num_set and string[6] in num_set and string[7] in num_set:
-                    return True  # 9
-                else:
-                    return False
-            else:
-                return False
-    else:
+        return True
+
+    temp = string[index]
+    if temp in char_set:
+        temp = "X"
+    if temp in num_set:
+        temp = "9"
+
+    if temp not in dictionary:
         return False
 
+    return dutch_helper(string, dictionary[temp], index + 1)
