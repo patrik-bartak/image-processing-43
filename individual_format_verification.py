@@ -56,6 +56,8 @@ def length_check_and_hyphen_correction(string):
     str_len = len(string)
     while len(string) > 1 and string[0] == "-":  # If a plate starts with hyphens, remove them
         string = string[1: str_len]
+        if string == "":
+            return None
         str_len -= 1
     while len(string) > 1 and string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
         string = string[0: str_len - 1]
