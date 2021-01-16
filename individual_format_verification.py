@@ -47,22 +47,17 @@ num_set = {"0", "1", "2", "3", "4",
 
 def verify_format(string, is_dutch):
     string = length_check_and_hyphen_correction(string)
-    if string is None or len(string) != 8 or not is_dutch_format(string):
+    if string is None or len(string) != 8 or is_dutch and not is_dutch_format(string):
         string = None
     return string
 
 
 def length_check_and_hyphen_correction(string):
-    str_len = len(string)
     while len(string) > 1 and string[0] == "-":  # If a plate starts with hyphens, remove them
-        string = string[1: str_len]
-        if string == "":
-            return None
-        str_len -= 1
-    while len(string) > 1 and string[str_len - 1] == "-":  # If a plate ends with hyphens, remove them
-        string = string[0: str_len - 1]
-        str_len -= 1
-    if str_len < 8:  # Disqualify plates with a length lower than 8
+        string = string[1: len(string)]
+    while len(string) > 1 and string[len(string) - 1] == "-":  # If a plate ends with hyphens, remove them
+        string = string[0: len(string) - 1]
+    if len(string) < 8:  # Disqualify plates with a length lower than 8
         return None
     return string
 

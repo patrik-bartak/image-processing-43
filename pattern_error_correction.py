@@ -5,10 +5,11 @@ def correct_errors(plate_strings):
 
 
 def simple_sequential_correction(plate_strings):
-    MAX = 6  # minimum hamming distance between plates considered different
+    # MAX = 6  # minimum hamming distance between plates considered different
 
     for i in range(len(plate_strings) - 1):
-        plate_strings[i] = str(hamming_distance(plate_strings[i], plate_strings[i + 1]))
+        if hamming_distance(plate_strings[i], plate_strings[i + 1]) > 5:
+            plate_strings[i] += " - NEW PLATE NEXT"
 
     return plate_strings
 

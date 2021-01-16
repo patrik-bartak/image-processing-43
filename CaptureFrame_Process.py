@@ -52,7 +52,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
                 print("Characters not recognized")
                 continue
             # if a plate is localized and recognized, do some format verification
-            string = individual_format_verification.verify_format(string, False)
+            string = individual_format_verification.verify_format(string, True)
             if string is None:
                 print("Recognized plate invalid format")
                 continue
