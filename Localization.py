@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from scipy import signal
+import sys
 import time
 
 """
@@ -21,6 +21,7 @@ Hints:
 
 start = 0
 flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
+
 
 def plate_detection(image):
     # Replace the below lines with your code.
@@ -124,11 +125,12 @@ def get_plates_by_bounding(image):
     image_edges = canny(image, 0, 0)
     cv2.imshow('canny', image_edges)
     cv2.waitKey(1)
-    #return image_edges
+    # return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours_reduced = find_contours(image_edges)
     # print('Contours: ', len(contours))
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
+    #contours_reduced = sorted([contours], key=cv2.contourArea, reverse=True)[:20]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -151,8 +153,82 @@ def print_diff(arr1, arr2):
 
 # FIND CONTOURS
 
-def findContours(edges):
-    return
+# Input : Binary image of edges
+# Output : List of objects, objects are defined by its corners
+
+def find_contours(edges):
+    contours = []
+    last = None
+    for i in range(len(edges)):
+        for j in range(len(edges[i])):
+            current = [i, j]
+            if last is not None and edges[last[0]][last[1]] == 0 and edges[current[0]][current[1]] == 255 \
+                    and check_contour_list(current, contours):
+                found = False
+                for contour in contours:
+                    if current in contour:
+                        found = True
+                if not found:
+                    temp = continue_contour(edges, current)
+                    if len(temp) >= 4:
+                        contours.append(temp)
+            last = current
+
+    for i in range(len(contours)):
+        contours[i] = find_corners(contours[i])
+
+    return contours
+
+
+def check_contour_list(point, contours):
+    for contour in contours:
+        if point in contour:
+            return False
+    return True
+
+
+def find_corners(contour):
+    min_x = sys.maxsize
+    max_x = 0
+    min_y = sys.maxsize
+    max_y = 0
+    for point in contour:
+        if (min_x > point[1]):
+            min_x = point[1]
+        if max_x < point[1]:
+            max_x = point[1]
+        if min_y > point[0]:
+            min_y = point[0]
+        if max_y < point[0]:
+            max_y = point[0]
+    return [[min_y, min_x], [min_y, max_x], [max_y, max_x], [max_y, min_x]]
+
+
+def continue_contour(edges, point):
+    found = []
+    current = point
+    starting_point = point
+    connected = False
+    for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
+        if edges[point[0] + dy][point[1] + dx] == 255:
+            connected = True
+            current = [point[0] + dy, point[1] + dx]
+            break
+
+    if not connected:
+        return []
+    connected = True
+    while current != starting_point and connected:
+        found.append(current)
+        connected = False
+        for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
+            new = [current[0] + dy, current[1] + dx]
+            if edges[current[0] + dy][current[1] + dx] == 255 and check_contour_list(new, [found]):
+                connected = True
+                current = new
+                break
+    return found
+
 
 # CANNY
 
@@ -162,7 +238,7 @@ def canny(image, lower, upper):
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150) # TODO
+    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)  # TODO
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)
