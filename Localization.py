@@ -55,9 +55,13 @@ def plate_detection(image):
     for coords in corner_coords_arr:
         coords = np.reshape(coords, (4, 2))
         coords = orient_corners(coords)
-        M = cv2.getPerspectiveTransform(np.float32(coords), np.float32([[0, 0], [480, 0], [480, 640], [0, 640]]))
-        plate = cv2.warpPerspective(image, M, (480, 640))
+        s_plate_w, s_plate_h = 500, 100
+        p_mat = custom_get_transform_matrix(np.float32(coords), np.float32([[0, 0], [s_plate_w, 0], [s_plate_w, s_plate_h], [0, s_plate_h]]))
+        plate = custom_warp_perspective(image, p_mat, (480, 640), (s_plate_h, s_plate_w))
+        # plate = cv2.warpPerspective(image, p_mat, (s_plate_w, s_plate_h))
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
+        cv2.imshow('check', plate)
+        cv2.waitKey(1)
         plate = cv2.resize(plate, (500, 100))
         plate = binarize(plate)
         kernel = np.ones((3, 3), np.uint8)
@@ -82,6 +86,61 @@ def binarize(plate):
     mask = cv2.inRange(plate, lower, upper)
     # plate = cv2.threshold(plate, 120, 1, cv2.THRESH_BINARY)[1]
     return mask
+
+
+def custom_get_transform_matrix(f, t):
+    # https://math.stackexchange.com/questions/494238/how-to-compute-homography-matrix-h-from-corresponding-points-2d-2d-planar-homog
+    b = np.zeros(9)
+    b[8] = 1
+    # x0, x1, x2, x3, y0, y1, y2, y3, x0p, x1p, x2p, x3p, y0p, y1p, y2p, y3p =
+    a = [
+        [-f[0, 0], -f[0, 1], -1, 0, 0, 0, f[0, 0]*t[0, 0], f[0, 1]*t[0, 0], t[0, 0]],
+        [0, 0, 0, -f[0, 0], -f[0, 1], -1, f[0, 0]*t[0, 1], f[0, 1]*t[0, 1], t[0, 1]],
+        [-f[1, 0], -f[1, 1], -1, 0, 0, 0, f[1, 0]*t[1, 0], f[1, 1]*t[1, 0], t[1, 0]],
+        [0, 0, 0, -f[1, 0], -f[1, 1], -1, f[1, 0]*t[1, 1], f[1, 1]*t[1, 1], t[1, 1]],
+        [-f[2, 0], -f[2, 1], -1, 0, 0, 0, f[2, 0]*t[2, 0], f[2, 1]*t[2, 0], t[2, 0]],
+        [0, 0, 0, -f[2, 0], -f[2, 1], -1, f[2, 0]*t[2, 1], f[2, 1]*t[2, 1], t[2, 1]],
+        [-f[3, 0], -f[3, 1], -1, 0, 0, 0, f[3, 0]*t[3, 0], f[3, 1]*t[3, 0], t[3, 0]],
+        [0, 0, 0, -f[3, 0], -f[3, 1], -1, f[3, 0]*t[3, 1], f[3, 1]*t[3, 1], t[3, 1]],
+        b.copy(),
+    ]
+    x = np.linalg.solve(a, b)
+    res = np.zeros((3, 3))
+    res[0] = x[0:3]
+    res[1] = x[3:6]
+    res[2] = x[6:9]
+    return res
+
+
+def custom_warp_perspective(image, p_mat, from_shape, to_shape):
+    from_h, from_w = from_shape
+    to_h, to_w = to_shape
+    new_img = np.zeros((to_h, to_w, 3))
+
+    x = np.arange(0, from_w)
+    y = np.arange(0, from_h)
+    xx, yy = np.meshgrid(x, y)
+    xx = np.reshape(xx, -1)
+    yy = np.reshape(yy, -1)
+
+    idx_new = np.matmul(p_mat, [xx, yy, np.ones(from_w * from_h)])
+    idx_new = (idx_new / idx_new[2]).astype(int)
+    xx = idx_new[0]
+    xx = np.where(xx < 0, 0, xx)
+    xx = np.where(xx >= to_w, to_w - 1, xx)
+    yy = idx_new[1]
+    yy = np.where(yy < 0, 0, yy)
+    yy = np.where(yy >= to_h, to_h - 1, yy)
+
+    new = np.reshape([yy, xx], (2, from_h, from_w))
+
+    # for i in range(from_h):
+    #     for j in range(from_w):
+    #         new_img[new[0, i, j], new[1, i, j]] = image[i, j]
+
+    new_img[new[0, :, :], new[1, :, :]] = image[:, :]
+
+    return new_img.astype(np.uint8)
 
 
 def orient_corners(c):

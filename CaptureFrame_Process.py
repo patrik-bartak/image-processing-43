@@ -47,6 +47,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         for i in range(0, len(plates)):
 
             plate, string = Recognize.segment_and_recognize(plates[i])
+            plate, string = None, None
             # if recognition fails to recognize a plate
             if string is None:
                 print("Characters not recognized")
