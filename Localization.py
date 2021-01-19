@@ -129,6 +129,11 @@ def get_plates_by_bounding(image):
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours_reduced = find_contours(image_edges)
+
+    temp = cv2.drawContours(image, contours_reduced, 2, (0, 255, 0), 2)
+    cv2.imshow('contours', temp)
+    cv2.waitKey(1)
+
     # print('Contours: ', len(contours))
     #contours_reduced = sorted([contours], key=cv2.contourArea, reverse=True)[:20]
 
@@ -201,7 +206,7 @@ def find_corners(contour):
             min_y = point[0]
         if max_y < point[0]:
             max_y = point[0]
-    return [[min_y, min_x], [min_y, max_x], [max_y, max_x], [max_y, min_x]]
+    return np.array([[[min_y, min_x]], [[min_y, max_x]], [[max_y, max_x]], [[max_y, min_x]]])
 
 
 def continue_contour(edges, point):
