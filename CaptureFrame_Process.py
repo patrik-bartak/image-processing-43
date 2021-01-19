@@ -29,7 +29,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     time_start = int(round(time.time()))
 
-    imshow_on = False
+    imshow_on = True
 
     cap = cv2.VideoCapture(file_path)
     # count = 0  # for file saving

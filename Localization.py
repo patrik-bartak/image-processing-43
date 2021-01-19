@@ -20,7 +20,7 @@ Hints:
 """
 
 start = 0
-imshow_on = False
+imshow_on = True
 
 
 def plate_detection(image):
@@ -57,30 +57,67 @@ def plate_detection(image):
         coords = np.reshape(coords, (4, 2))
         coords = orient_corners(coords)
         s_plate_w, s_plate_h = 500, 100
-        p_mat = custom_get_transform_matrix(np.float32(coords), np.float32([[0, 0], [s_plate_w, 0], [s_plate_w, s_plate_h], [0, s_plate_h]]))
+        p_mat = custom_get_transform_matrix(
+            np.float32(coords),
+            np.float32([[0, 0], [s_plate_w, 0], [s_plate_w, s_plate_h], [0, s_plate_h]])
+        )
         plate = custom_reverse_warp_perspective(image, p_mat, (480, 640), (s_plate_h, s_plate_w))
         # plate = cv2.warpPerspective(image, p_mat, (s_plate_w, s_plate_h))
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
         g_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16
         plate = cv2.filter2D(np.float64(plate.copy()), -1, g_kernel).astype(np.uint8)
-        if imshow_on:
-            cv2.imshow('color', plate)
         cv2.waitKey(1)
         # plate = cv2.resize(plate, (500, 100))
         plate = binarize(plate)
+        if imshow_on:
+            cv2.imshow('color', plate)
+            cv2.waitKey(1)
         kernel = np.ones((3, 3), np.uint8)
         # Erode, flood fill at edges, then dilate
         plate_eroded = cv2.erode(plate, kernel, iterations=2)
         flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
+        # x = np.arange(100, dtype='2int32')
+        # print(x)
+        # flood_fill_points = [np.concatenate((np.zeros(500), np.ones(500)*99, np.arange(100), np.arange(100))),
+        # np.concatenate((np.arange(500), np.arange(500), np.zeros(100), np.ones(100)*499))]
         for a, b in flood_fill_points:
             if plate_eroded[b, a] != 0:
-                cv2.floodFill(plate_eroded, None, (a, b), 0)
+                # cv2.floodFill(plate_eroded, None, (a, b), 0)
+                custom_flood_fill(plate_eroded, (b, a), 0)
         plate = cv2.dilate(plate_eroded, kernel, iterations=3)
-        print(np.count_nonzero(mask) / np.array(mask).size)
         if imshow_on:
             cv2.imshow('b/w', plate)
+            cv2.waitKey(1)
         detected_plates.append(plate)
     return detected_plates
+
+
+def custom_flood_fill(plate, init, value):
+    # https://www.geeksforgeeks.org/flood-fill-algorithm/
+    custom_flood_fill_helper(plate, init, value, [])
+
+
+def custom_flood_fill_helper(plate, init, value, q):
+    old = plate[init]
+    if old == value:
+        return
+    plate[init] = value
+    q.append(init)
+
+    while q:
+        y, x = q.pop()
+        if 0 <= y + 1 < 100 and 0 <= x < 500 and plate[y + 1, x] == old:
+            plate[y + 1, x] = value
+            q.append([y + 1, x])
+        if 0 <= y - 1 < 100 and 0 <= x < 500 and plate[y - 1, x] == old:
+            plate[y - 1, x] = value
+            q.append([y - 1, x])
+        if 0 <= y < 100 and 0 <= x + 1 < 500 and plate[y, x + 1] == old:
+            plate[y, x + 1] = value
+            q.append([y, x + 1])
+        if 0 <= y < 100 and 0 <= x - 1 < 500 and plate[y, x - 1] == old:
+            plate[y, x - 1] = value
+            q.append([y, x - 1])
 
 
 def binarize(plate):
@@ -119,35 +156,35 @@ def custom_get_transform_matrix(f, t):
     return res
 
 
-def custom_warp_perspective(image, p_mat, from_shape, to_shape):
-    from_h, from_w = from_shape
-    to_h, to_w = to_shape
-    new_img = np.zeros((to_h, to_w, 3))
-
-    x = np.arange(0, from_w)
-    y = np.arange(0, from_h)
-    xx, yy = np.meshgrid(x, y)
-    xx = np.reshape(xx, -1)
-    yy = np.reshape(yy, -1)
-
-    idx_new = np.matmul(p_mat, [xx, yy, np.ones(from_w * from_h)])
-    idx_new = (idx_new / idx_new[2]).astype(int)
-    xx = idx_new[0]
-    xx = np.where(xx < 0, 0, xx)
-    xx = np.where(xx >= to_w, to_w - 1, xx)
-    yy = idx_new[1]
-    yy = np.where(yy < 0, 0, yy)
-    yy = np.where(yy >= to_h, to_h - 1, yy)
-
-    new = np.reshape([yy, xx], (2, from_h, from_w))
-
-    # for i in range(from_h):
-    #     for j in range(from_w):
-    #         new_img[new[0, i, j], new[1, i, j]] = image[i, j]
-
-    new_img[new[0, :, :], new[1, :, :]] = image[:, :]
-
-    return new_img.astype(np.uint8)
+# def custom_warp_perspective(image, p_mat, from_shape, to_shape):
+#     from_h, from_w = from_shape
+#     to_h, to_w = to_shape
+#     new_img = np.zeros((to_h, to_w, 3))
+#
+#     x = np.arange(0, from_w)
+#     y = np.arange(0, from_h)
+#     xx, yy = np.meshgrid(x, y)
+#     xx = np.reshape(xx, -1)
+#     yy = np.reshape(yy, -1)
+#
+#     idx_new = np.matmul(p_mat, [xx, yy, np.ones(from_w * from_h)])
+#     idx_new = (idx_new / idx_new[2]).astype(int)
+#     xx = idx_new[0]
+#     xx = np.where(xx < 0, 0, xx)
+#     xx = np.where(xx >= to_w, to_w - 1, xx)
+#     yy = idx_new[1]
+#     yy = np.where(yy < 0, 0, yy)
+#     yy = np.where(yy >= to_h, to_h - 1, yy)
+#
+#     new = np.reshape([yy, xx], (2, from_h, from_w))
+#
+#     # for i in range(from_h):
+#     #     for j in range(from_w):
+#     #         new_img[new[0, i, j], new[1, i, j]] = image[i, j]
+#
+#     new_img[new[0, :, :], new[1, :, :]] = image[:, :]
+#
+#     return new_img.astype(np.uint8)
 
 
 def custom_reverse_warp_perspective(image, p_mat, from_shape, to_shape):
@@ -218,7 +255,7 @@ def get_plates_by_bounding(image):
     image_edges = canny(image, 0, 0)
     if imshow_on:
         cv2.imshow('canny', image_edges)
-    cv2.waitKey(1)
+        cv2.waitKey(1)
     # return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
