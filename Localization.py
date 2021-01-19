@@ -20,7 +20,8 @@ Hints:
 """
 
 start = 0
-flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
+imshow_on = False
+
 
 def plate_detection(image):
     # Replace the below lines with your code.
@@ -57,21 +58,27 @@ def plate_detection(image):
         coords = orient_corners(coords)
         s_plate_w, s_plate_h = 500, 100
         p_mat = custom_get_transform_matrix(np.float32(coords), np.float32([[0, 0], [s_plate_w, 0], [s_plate_w, s_plate_h], [0, s_plate_h]]))
-        plate = custom_warp_perspective(image, p_mat, (480, 640), (s_plate_h, s_plate_w))
+        plate = custom_reverse_warp_perspective(image, p_mat, (480, 640), (s_plate_h, s_plate_w))
         # plate = cv2.warpPerspective(image, p_mat, (s_plate_w, s_plate_h))
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
-        cv2.imshow('check', plate)
+        g_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16
+        plate = cv2.filter2D(np.float64(plate.copy()), -1, g_kernel).astype(np.uint8)
+        if imshow_on:
+            cv2.imshow('color', plate)
         cv2.waitKey(1)
-        plate = cv2.resize(plate, (500, 100))
+        # plate = cv2.resize(plate, (500, 100))
         plate = binarize(plate)
         kernel = np.ones((3, 3), np.uint8)
         # Erode, flood fill at edges, then dilate
         plate_eroded = cv2.erode(plate, kernel, iterations=2)
+        flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
         for a, b in flood_fill_points:
             if plate_eroded[b, a] != 0:
                 cv2.floodFill(plate_eroded, None, (a, b), 0)
-        plate = cv2.dilate(plate_eroded, kernel, iterations=2)
+        plate = cv2.dilate(plate_eroded, kernel, iterations=3)
         print(np.count_nonzero(mask) / np.array(mask).size)
+        if imshow_on:
+            cv2.imshow('b/w', plate)
         detected_plates.append(plate)
     return detected_plates
 
@@ -94,14 +101,14 @@ def custom_get_transform_matrix(f, t):
     b[8] = 1
     # x0, x1, x2, x3, y0, y1, y2, y3, x0p, x1p, x2p, x3p, y0p, y1p, y2p, y3p =
     a = [
-        [-f[0, 0], -f[0, 1], -1, 0, 0, 0, f[0, 0]*t[0, 0], f[0, 1]*t[0, 0], t[0, 0]],
-        [0, 0, 0, -f[0, 0], -f[0, 1], -1, f[0, 0]*t[0, 1], f[0, 1]*t[0, 1], t[0, 1]],
-        [-f[1, 0], -f[1, 1], -1, 0, 0, 0, f[1, 0]*t[1, 0], f[1, 1]*t[1, 0], t[1, 0]],
-        [0, 0, 0, -f[1, 0], -f[1, 1], -1, f[1, 0]*t[1, 1], f[1, 1]*t[1, 1], t[1, 1]],
-        [-f[2, 0], -f[2, 1], -1, 0, 0, 0, f[2, 0]*t[2, 0], f[2, 1]*t[2, 0], t[2, 0]],
-        [0, 0, 0, -f[2, 0], -f[2, 1], -1, f[2, 0]*t[2, 1], f[2, 1]*t[2, 1], t[2, 1]],
-        [-f[3, 0], -f[3, 1], -1, 0, 0, 0, f[3, 0]*t[3, 0], f[3, 1]*t[3, 0], t[3, 0]],
-        [0, 0, 0, -f[3, 0], -f[3, 1], -1, f[3, 0]*t[3, 1], f[3, 1]*t[3, 1], t[3, 1]],
+        [-f[0, 0], -f[0, 1], -1, 0, 0, 0, f[0, 0] * t[0, 0], f[0, 1] * t[0, 0], t[0, 0]],
+        [0, 0, 0, -f[0, 0], -f[0, 1], -1, f[0, 0] * t[0, 1], f[0, 1] * t[0, 1], t[0, 1]],
+        [-f[1, 0], -f[1, 1], -1, 0, 0, 0, f[1, 0] * t[1, 0], f[1, 1] * t[1, 0], t[1, 0]],
+        [0, 0, 0, -f[1, 0], -f[1, 1], -1, f[1, 0] * t[1, 1], f[1, 1] * t[1, 1], t[1, 1]],
+        [-f[2, 0], -f[2, 1], -1, 0, 0, 0, f[2, 0] * t[2, 0], f[2, 1] * t[2, 0], t[2, 0]],
+        [0, 0, 0, -f[2, 0], -f[2, 1], -1, f[2, 0] * t[2, 1], f[2, 1] * t[2, 1], t[2, 1]],
+        [-f[3, 0], -f[3, 1], -1, 0, 0, 0, f[3, 0] * t[3, 0], f[3, 1] * t[3, 0], t[3, 0]],
+        [0, 0, 0, -f[3, 0], -f[3, 1], -1, f[3, 0] * t[3, 1], f[3, 1] * t[3, 1], t[3, 1]],
         b.copy(),
     ]
     x = np.linalg.solve(a, b)
@@ -143,6 +150,34 @@ def custom_warp_perspective(image, p_mat, from_shape, to_shape):
     return new_img.astype(np.uint8)
 
 
+def custom_reverse_warp_perspective(image, p_mat, from_shape, to_shape):
+    inv_mat = np.linalg.inv(p_mat)
+    from_h, from_w = from_shape
+    to_h, to_w = to_shape
+    new_img = np.zeros((to_h, to_w, 3))
+
+    x = np.arange(0, to_w)
+    y = np.arange(0, to_h)
+    xx, yy = np.meshgrid(x, y)
+    xx = np.reshape(xx, -1)
+    yy = np.reshape(yy, -1)
+
+    idx_new = np.matmul(inv_mat, [xx, yy, np.ones(to_w * to_h)])
+    idx_new = (idx_new / idx_new[2]).astype(int)
+    xx = idx_new[0]
+    xx = np.where(xx < 0, 0, xx)
+    xx = np.where(xx >= from_w, from_w - 1, xx)
+    yy = idx_new[1]
+    yy = np.where(yy < 0, 0, yy)
+    yy = np.where(yy >= from_h, from_h - 1, yy)
+
+    old = np.reshape([yy, xx], (2, to_h, to_w))
+
+    new_img[:, :] = image[old[0, :, :], old[1, :, :]]
+
+    return new_img
+
+
 def orient_corners(c):
     tl, tr, br, bl = c
     # Flip plate if mirrored along y axis
@@ -181,9 +216,10 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = canny(image, 0, 0)
-    cv2.imshow('canny', image_edges)
+    if imshow_on:
+        cv2.imshow('canny', image_edges)
     cv2.waitKey(1)
-    #return image_edges
+    # return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print('Contours: ', len(contours))
@@ -213,6 +249,7 @@ def print_diff(arr1, arr2):
 def findContours(edges):
     return
 
+
 # CANNY
 
 # https://docs.opencv.org/3.4/da/d5c/tutorial_canny_detector.html
@@ -221,7 +258,7 @@ def canny(image, lower, upper):
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150) # TODO
+    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)  # TODO
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)

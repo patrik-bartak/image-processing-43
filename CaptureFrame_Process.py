@@ -29,6 +29,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     time_start = int(round(time.time()))
 
+    imshow_on = False
+
     cap = cv2.VideoCapture(file_path)
     # count = 0  # for file saving
     plate_strings = []  # program output
@@ -37,8 +39,9 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         ret, frame = cap.read()
         if frame is None:
             break
-        cv2.imshow('input', frame)
-        cv2.waitKey(1)
+        if imshow_on:
+            cv2.imshow('input', frame)
+            cv2.waitKey(1)
         plates = Localization.plate_detection(frame)
         # if localization does not find anything
         if plates is None or len(plates) == 0:
@@ -47,7 +50,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         for i in range(0, len(plates)):
 
             plate, string = Recognize.segment_and_recognize(plates[i])
-            plate, string = None, None
             # if recognition fails to recognize a plate
             if string is None:
                 print("Characters not recognized")
@@ -68,7 +70,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             plate_strings.append(string)
             print(string)
 
-            cv2.imshow('plate', plate)
+            if imshow_on:
+                cv2.imshow('plate', plate)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
