@@ -123,14 +123,13 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = canny(image, 0, 0)
-    cv2.imshow('canny', image_edges)
-    cv2.waitKey(1)
+
     # return image_edges
     # print(np.mean(abs(image_edges - check)))
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours_reduced = find_contours(image_edges)
 
-    temp = cv2.drawContours(image, contours_reduced, 2, (0, 255, 0), 2)
+    temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
     cv2.imshow('contours', temp)
     cv2.waitKey(1)
 
@@ -162,6 +161,12 @@ def print_diff(arr1, arr2):
 # Output : List of objects, objects are defined by its corners
 
 def find_contours(edges):
+    kernel = np.ones((3, 3), np.uint8)
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    #edges = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
+    cv2.imshow('canny', edges)
+    cv2.waitKey(1)
+
     contours = []
     last = None
     for i in range(len(edges)):
@@ -206,7 +211,7 @@ def find_corners(contour):
             min_y = point[0]
         if max_y < point[0]:
             max_y = point[0]
-    return np.array([[[min_y, min_x]], [[min_y, max_x]], [[max_y, max_x]], [[max_y, min_x]]])
+    return np.array([[[min_x, min_y]], [[max_x, min_y]], [[max_x, max_y]], [[min_x, max_y]]])
 
 
 def continue_contour(edges, point):
@@ -228,7 +233,9 @@ def continue_contour(edges, point):
         connected = False
         for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
             new = [current[0] + dy, current[1] + dx]
-            if edges[current[0] + dy][current[1] + dx] == 255 and check_contour_list(new, [found]):
+            if 0 <= current[0] + dy < len(edges) \
+                    and 0 <= current[1] + dx < len(edges[0]) \
+                    and edges[current[0] + dy][current[1] + dx] == 255 and check_contour_list(new, [found]):
                 connected = True
                 current = new
                 break
