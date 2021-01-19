@@ -123,6 +123,8 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = canny(image, 0, 0)
+    cv2.imshow('canny', image_edges)
+    cv2.waitKey(1)
 
     # return image_edges
     # print(np.mean(abs(image_edges - check)))
@@ -161,12 +163,6 @@ def print_diff(arr1, arr2):
 # Output : List of objects, objects are defined by its corners
 
 def find_contours(edges):
-    kernel = np.ones((3, 3), np.uint8)
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-    #edges = cv2.morphologyEx(edges, cv2.MORPH_OPEN, kernel)
-    cv2.imshow('canny', edges)
-    cv2.waitKey(1)
-
     contours = []
     last = None
     for i in range(len(edges)):
@@ -180,12 +176,15 @@ def find_contours(edges):
                         found = True
                 if not found:
                     temp = continue_contour(edges, current)
-                    if len(temp) >= 4:
+                    if len(temp) >= 60:
                         contours.append(temp)
             last = current
 
     for i in range(len(contours)):
-        contours[i] = find_corners(contours[i])
+        temp = []
+        for point in contours[i]:
+            temp.append([[point[1], point[0]]])
+        contours[i] = np.array(temp)
 
     return contours
 
@@ -203,7 +202,7 @@ def find_corners(contour):
     min_y = sys.maxsize
     max_y = 0
     for point in contour:
-        if (min_x > point[1]):
+        if min_x > point[1]:
             min_x = point[1]
         if max_x < point[1]:
             max_x = point[1]
@@ -227,18 +226,18 @@ def continue_contour(edges, point):
 
     if not connected:
         return []
-    connected = True
-    while current != starting_point and connected:
+    found.append(starting_point)
+    queue = [current]
+    while len(queue) != 0:
+        current = queue.pop(0)
         found.append(current)
-        connected = False
         for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
             new = [current[0] + dy, current[1] + dx]
             if 0 <= current[0] + dy < len(edges) \
                     and 0 <= current[1] + dx < len(edges[0]) \
-                    and edges[current[0] + dy][current[1] + dx] == 255 and check_contour_list(new, [found]):
-                connected = True
-                current = new
-                break
+                    and edges[current[0] + dy][current[1] + dx] == 255 \
+                    and check_contour_list(new, [found]) and check_contour_list(new, [queue]):
+                queue.insert(0, new)
     return found
 
 
