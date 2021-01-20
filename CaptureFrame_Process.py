@@ -51,6 +51,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             if string is None:
                 print("Characters not recognized")
                 continue
+            cv2.imshow('sanity check', plate)
+            cv2.waitKey(1)
             # if a plate is localized and recognized, do some format verification
             string = individual_format_verification.verify_format(string, True)
             if string is None:

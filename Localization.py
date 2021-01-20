@@ -56,7 +56,7 @@ def plate_detection(image):
     for coords in corner_coords_arr:
         coords = np.reshape(coords, (4, 2))
         coords = orient_corners(coords)
-        M = cv2.getPerspectiveTransform(np.float32(coords), np.float32([[0, 0], [480, 0], [480, 640], [0, 640]]))
+        M = cv2.getPerspectiveTransform(np.float32(coords), np.float32([[0, 640], [0, 0], [480, 0], [480, 640]]))
         plate = cv2.warpPerspective(image, M, (480, 640))
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
         plate = cv2.resize(plate, (500, 100))
@@ -131,12 +131,11 @@ def get_plates_by_bounding(image):
     contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours_reduced = find_contours(image_edges)
 
+    # print('Contours: ', len(contours))
+    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:10]
     temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
     cv2.imshow('contours', temp)
     cv2.waitKey(1)
-
-    # print('Contours: ', len(contours))
-    #contours_reduced = sorted([contours], key=cv2.contourArea, reverse=True)[:20]
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -145,6 +144,8 @@ def get_plates_by_bounding(image):
         if len(all_edges) == 4 and check(all_edges):
             all_plates.append(all_edges)
     # (i, 4, 2) array of corner coordinates for i plates in the image
+    cv2.imshow('chosen', cv2.drawContours(image, all_plates, -1, (0, 255, 0), 1))
+    cv2.waitKey(1)
     return all_plates
 
 
@@ -184,7 +185,10 @@ def find_contours(edges):
         temp = []
         for point in contours[i]:
             temp.append([[point[1], point[0]]])
-        contours[i] = np.array(temp)
+        contour = np.array(temp)
+        rect = cv2.minAreaRect(contour)
+        box = cv2.boxPoints(rect)
+        contours[i] = np.array([[box[0]], [box[1]], [box[2]], [box[3]]], dtype=np.int32)
 
     return contours
 
@@ -479,6 +483,6 @@ def get_angle_dot(vec1, vec2):
     return abs(np.dot(unit1, unit2))
 
 
-def check_ratio(dist, epsilon=3):
+def check_ratio(dist, epsilon=1.5):
     ratio = 5
-    return abs(dist[0] / dist[1] - ratio) < epsilon and abs(dist[2] / dist[3] - ratio) < epsilon
+    return abs(max(dist[1], dist[0]) / min(dist[1], dist[0]) - ratio) < epsilon and abs(max(dist[3], dist[2]) / min(dist[3], dist[2]) - ratio) < epsilon
