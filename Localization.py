@@ -37,21 +37,14 @@ def plate_detection(image):
     detected_plates = []
 
     original = image.copy()
-    epsilon = 0.1
-    corner_coords_arr = get_plates_by_bounding(image)
-
-    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-    cv2.drawContours(mask, corner_coords_arr, 0, 255, -1)
-
-    if mask.mean() < epsilon or len(corner_coords_arr) == 0:
-        mask = get_yellow_mask(original)
-        kernel = np.ones((5, 5), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        new_image = cv2.bitwise_and(original, original, mask=mask)
-        corner_coords_arr = get_plates_by_bounding(new_image)
-        if len(corner_coords_arr) == 0:
-            return
+    mask = get_yellow_mask(original)
+    kernel = np.ones((7, 7), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    new_image = cv2.bitwise_and(original, original, mask=mask)
+    corner_coords_arr = get_plates_by_bounding(new_image)
+    if len(corner_coords_arr) == 0:
+        return
 
     for coords in corner_coords_arr:
         coords = np.reshape(coords, (4, 2))
@@ -128,11 +121,11 @@ def get_plates_by_bounding(image):
 
     # return image_edges
     # print(np.mean(abs(image_edges - check)))
-    contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours_reduced = find_contours(image_edges)
 
     # print('Contours: ', len(contours))
-    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:10]
+    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:1]
     temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
     cv2.imshow('contours', temp)
     cv2.waitKey(1)
@@ -188,7 +181,8 @@ def find_contours(edges):
         contour = np.array(temp)
         rect = cv2.minAreaRect(contour)
         box = cv2.boxPoints(rect)
-        contours[i] = np.array([[box[0]], [box[1]], [box[2]], [box[3]]], dtype=np.int32)
+        a, b, c, d = orient_corners((box[0], box[1], box[2], box[3]))
+        contours[i] = np.array([[a], [b], [c], [d]], dtype=np.int32)
 
     return contours
 
@@ -199,22 +193,6 @@ def check_contour_list(point, contours):
             return False
     return True
 
-
-def find_corners(contour):
-    min_x = sys.maxsize
-    max_x = 0
-    min_y = sys.maxsize
-    max_y = 0
-    for point in contour:
-        if min_x > point[1]:
-            min_x = point[1]
-        if max_x < point[1]:
-            max_x = point[1]
-        if min_y > point[0]:
-            min_y = point[0]
-        if max_y < point[0]:
-            max_y = point[0]
-    return np.array([[[min_x, min_y]], [[max_x, min_y]], [[max_x, max_y]], [[min_x, max_y]]])
 
 
 def continue_contour(edges, point):
@@ -484,5 +462,5 @@ def get_angle_dot(vec1, vec2):
 
 
 def check_ratio(dist, epsilon=1.5):
-    ratio = 5
+    ratio = 4
     return abs(max(dist[1], dist[0]) / min(dist[1], dist[0]) - ratio) < epsilon and abs(max(dist[3], dist[2]) / min(dist[3], dist[2]) - ratio) < epsilon
