@@ -23,10 +23,10 @@ Hints:
 """
 
 start = 0
-imshow_on = True
+show = True
 
 
-def plate_detection(image):
+def plate_detection(image, im_show):
     # Replace the below lines with your code.
     # https://stackoverflow.com/questions/57262974/tracking-yellow-color-object-with-opencv-python
     # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
@@ -35,6 +35,9 @@ def plate_detection(image):
     # https://tajanthan.github.io/cv/docs/anpr.pdf
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
     global start
+    global show
+    show = im_show
+
     start = int(round(time.time() * 1000))
     detected_plates = []
     original = image.copy()
@@ -61,7 +64,7 @@ def plate_detection(image):
         g_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16
         plate = cv2.filter2D(np.float64(plate.copy()), -1, g_kernel).astype(np.uint8)
         # plate = cv2.resize(plate[5:95, 20:480], (500, 100))
-        if imshow_on:
+        if show:
             cv2.imshow('1 - Projected', plate)
             cv2.waitKey(1)
         detected_plates.append(plate)
@@ -70,13 +73,13 @@ def plate_detection(image):
 
 # accepts a black & white 255 image and performs edge cleanup using flood fill
 def edge_cleanup_procedure(plate):
-    if imshow_on:
+    if show:
         cv2.imshow('2 - binarized', plate)
         cv2.waitKey(1)
     kernel = np.ones((3, 3), np.uint8)
     # Erode, flood fill at edges, then dilate
     plate = cv2.erode(plate, kernel, iterations=1)
-    if imshow_on:
+    if show:
         cv2.imshow('3 - eroded', plate)
         cv2.waitKey(1)
     # x = np.arange(100, dtype='2int32')
@@ -92,11 +95,11 @@ def edge_cleanup_procedure(plate):
         for y in range(h):
             if plate[y, x] != 0:
                 custom_flood_fill(plate, (y, x), 0)
-    if imshow_on:
+    if show:
         cv2.imshow('4 - floodfilled', plate)
         cv2.waitKey(1)
     plate = cv2.dilate(plate, kernel, iterations=1)
-    if imshow_on:
+    if show:
         cv2.imshow('5 - dilated', plate)
         cv2.waitKey(1)
     return plate
@@ -134,7 +137,7 @@ def binarize_255(plate, threshold):
     # Histogram equalization and threshold
     plate = cv2.cvtColor(plate.copy(), cv2.COLOR_BGR2GRAY)
     plate = custom_equalize_histogram(plate)
-    if imshow_on:
+    if show:
         cv2.imshow('2.5 - equalized', plate)
         cv2.waitKey(1)
     lower = np.array(0, dtype="uint8")
@@ -216,7 +219,7 @@ def get_plates_by_bounding(image):
     all_plates = []
 
     image_edges = Canny.canny(image, 0, 0)
-    if imshow_on:
+    if show:
         cv2.imshow('canny', image_edges)
         cv2.waitKey(1)
     # return image_edges
@@ -227,8 +230,9 @@ def get_plates_by_bounding(image):
     # print('Contours: ', len(contours))
     contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:5]
     temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
-    cv2.imshow('contours', temp)
-    cv2.waitKey(1)
+    if show:
+        cv2.imshow('contours', temp)
+        cv2.waitKey(1)
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -237,6 +241,4 @@ def get_plates_by_bounding(image):
         if len(all_edges) == 4 and Checker.check(all_edges):
             all_plates.append(all_edges)
     # (i, 4, 2) array of corner coordinates for i plates in the image
-    cv2.imshow('chosen', cv2.drawContours(image, all_plates, -1, (0, 255, 0), 1))
-    cv2.waitKey(1)
     return all_plates

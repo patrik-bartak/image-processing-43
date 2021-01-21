@@ -25,11 +25,9 @@ Output: None
 """
 
 
-def CaptureFrame_Process(file_path, sample_frequency, save_path):
+def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
     time_start = int(round(time.time()))
-
-    imshow_on = True
 
     cap = cv2.VideoCapture(file_path)
     # count = 0  # for file saving
@@ -39,15 +37,15 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         ret, frame = cap.read()
         if frame is None:
             break
-        if imshow_on:
+        if show:
             cv2.imshow('input', frame)
             cv2.waitKey(1)
         t = 0
-        while t < 20:
+        while t < 10:
             cap.read()
             t += 1
 
-        colour_plates = Localization.plate_detection(frame)
+        colour_plates = Localization.plate_detection(frame, show)
         # if localization does not find anything
         if colour_plates is None or len(colour_plates) == 0:
             continue
@@ -84,7 +82,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
             plate_strings.append(string)
             print(string)
 
-            if imshow_on:
+            if show:
                 cv2.imshow('plate', plate)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
