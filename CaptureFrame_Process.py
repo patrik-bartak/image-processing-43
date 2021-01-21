@@ -42,29 +42,43 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path):
         if imshow_on:
             cv2.imshow('input', frame)
             cv2.waitKey(1)
-        plates = Localization.plate_detection(frame)
+        t = 0
+        while t < 20:
+            cap.read()
+            t += 1
+
+        colour_plates = Localization.plate_detection(frame)
         # if localization does not find anything
-        if plates is None or len(plates) == 0:
+        if colour_plates is None or len(colour_plates) == 0:
             continue
 
-        for i in range(0, len(plates)):
+        for i in range(0, len(colour_plates)):
+            thresholds = [40, 60, 70, 80, 100]
+            while True:
+                for j in range(len(thresholds)):
+                    binarized = Localization.binarize_255(colour_plates[i], thresholds[j])
+                    clean_plate = Localization.edge_cleanup_procedure(binarized)
+                    # recognize the plate characters
+                    plate, string = Recognize.segment_and_recognize(clean_plate)
+                    # if a plate is localized and recognized, do some format verification
+                    string = individual_format_verification.verify_format(string, True)
+                    if string is not None:
+                        break
+                if string is not None or string is None and np.shape(colour_plates[i])[0] < 80:
+                    break
+                elif string is None:
+                    colour_plates[i] = colour_plates[i][10:-10, 20:-20]
+                    print("Invalid format, cropping image...")
+                    continue
 
-            plate, string = Recognize.segment_and_recognize(plates[i])
-            # if recognition fails to recognize a plate
-            if string is None:
-                print("Characters not recognized")
-                continue
-            # if a plate is localized and recognized, do some format verification
-            string = individual_format_verification.verify_format(string, True)
             if string is None:
                 print("Recognized plate invalid format")
                 continue
-
             # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
             # count += 1  # for file saving
             # cv2.imwrite("images/out/img-{}.jpg".format(count), plate)
             # for displaying binary images
-            if not np.max(plate) == 255:
+            if np.max(plate) == 1:
                 plate = plate * 255
 
             plate_strings.append(string)

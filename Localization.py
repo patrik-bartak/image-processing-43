@@ -1,7 +1,7 @@
+import time
+
 import cv2
 import numpy as np
-from scipy import signal
-import time
 
 """
 In this file, you need to define plate_detection function.
@@ -33,25 +33,16 @@ def plate_detection(image):
     # https://docs.opencv.org/master/d9/d61/tutorial_py_morphological_ops.html
     global start
     start = int(round(time.time() * 1000))
-
     detected_plates = []
-
     original = image.copy()
-    epsilon = 0.1
-    corner_coords_arr = get_plates_by_bounding(image)
-
-    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
-    cv2.drawContours(mask, corner_coords_arr, 0, 255, -1)
-
-    if mask.mean() < epsilon or len(corner_coords_arr) == 0:
-        mask = get_yellow_mask(original)
-        kernel = np.ones((5, 5), np.uint8)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-        new_image = cv2.bitwise_and(original, original, mask=mask)
-        corner_coords_arr = get_plates_by_bounding(new_image)
-        if len(corner_coords_arr) == 0:
-            return
+    mask = get_yellow_mask(original)
+    kernel = np.ones((7, 7), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    new_image = cv2.bitwise_and(original, original, mask=mask)
+    corner_coords_arr = get_plates_by_bounding(new_image)
+    if len(corner_coords_arr) == 0:
+        return
 
     for coords in corner_coords_arr:
         coords = np.reshape(coords, (4, 2))
@@ -66,30 +57,46 @@ def plate_detection(image):
         print("Time needed: ", int(round(time.time() * 1000)) - start, ' ms.')
         g_kernel = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]]) / 16
         plate = cv2.filter2D(np.float64(plate.copy()), -1, g_kernel).astype(np.uint8)
-        cv2.waitKey(1)
-        # plate = cv2.resize(plate, (500, 100))
-        plate = binarize(plate)
+        # plate = cv2.resize(plate[5:95, 20:480], (500, 100))
         if imshow_on:
-            cv2.imshow('color', plate)
-            cv2.waitKey(1)
-        kernel = np.ones((3, 3), np.uint8)
-        # Erode, flood fill at edges, then dilate
-        plate_eroded = cv2.erode(plate, kernel, iterations=2)
-        flood_fill_points = [(0, 0), (0, 99), (499, 99), (499, 0), (0, 49), (249, 99), (499, 49), (249, 0)]
-        # x = np.arange(100, dtype='2int32')
-        # print(x)
-        # flood_fill_points = [np.concatenate((np.zeros(500), np.ones(500)*99, np.arange(100), np.arange(100))),
-        # np.concatenate((np.arange(500), np.arange(500), np.zeros(100), np.ones(100)*499))]
-        for a, b in flood_fill_points:
-            if plate_eroded[b, a] != 0:
-                # cv2.floodFill(plate_eroded, None, (a, b), 0)
-                custom_flood_fill(plate_eroded, (b, a), 0)
-        plate = cv2.dilate(plate_eroded, kernel, iterations=3)
-        if imshow_on:
-            cv2.imshow('b/w', plate)
+            cv2.imshow('1 - Projected', plate)
             cv2.waitKey(1)
         detected_plates.append(plate)
     return detected_plates
+
+
+# accepts a black & white 255 image and performs edge cleanup using flood fill
+def edge_cleanup_procedure(plate):
+    if imshow_on:
+        cv2.imshow('2 - binarized', plate)
+        cv2.waitKey(1)
+    kernel = np.ones((3, 3), np.uint8)
+    # Erode, flood fill at edges, then dilate
+    plate = cv2.erode(plate, kernel, iterations=1)
+    if imshow_on:
+        cv2.imshow('3 - eroded', plate)
+        cv2.waitKey(1)
+    # x = np.arange(100, dtype='2int32')
+    # print(x)
+    # flood_fill_points = [np.concatenate((np.zeros(500), np.ones(500)*99, np.arange(100), np.arange(100))),
+    # np.concatenate((np.arange(500), np.arange(500), np.zeros(100), np.ones(100)*499))]
+    h, w = np.shape(plate)
+    for y in [0, h - 1]:
+        for x in range(w):
+            if plate[y, x] != 0:
+                custom_flood_fill(plate, (y, x), 0)
+    for x in [0, w - 1]:
+        for y in range(h):
+            if plate[y, x] != 0:
+                custom_flood_fill(plate, (y, x), 0)
+    if imshow_on:
+        cv2.imshow('4 - floodfilled', plate)
+        cv2.waitKey(1)
+    plate = cv2.dilate(plate, kernel, iterations=1)
+    if imshow_on:
+        cv2.imshow('5 - dilated', plate)
+        cv2.waitKey(1)
+    return plate
 
 
 def custom_flood_fill(plate, init, value):
@@ -98,38 +105,47 @@ def custom_flood_fill(plate, init, value):
 
 
 def custom_flood_fill_helper(plate, init, value, q):
+    h, w = np.shape(plate)
     old = plate[init]
     if old == value:
         return
     plate[init] = value
     q.append(init)
-
     while q:
         y, x = q.pop()
-        if 0 <= y + 1 < 100 and 0 <= x < 500 and plate[y + 1, x] == old:
+        if 0 <= y + 1 < h and 0 <= x < w and plate[y + 1, x] == old:
             plate[y + 1, x] = value
             q.append([y + 1, x])
-        if 0 <= y - 1 < 100 and 0 <= x < 500 and plate[y - 1, x] == old:
+        if 0 <= y - 1 < h and 0 <= x < w and plate[y - 1, x] == old:
             plate[y - 1, x] = value
             q.append([y - 1, x])
-        if 0 <= y < 100 and 0 <= x + 1 < 500 and plate[y, x + 1] == old:
+        if 0 <= y < h and 0 <= x + 1 < w and plate[y, x + 1] == old:
             plate[y, x + 1] = value
             q.append([y, x + 1])
-        if 0 <= y < 100 and 0 <= x - 1 < 500 and plate[y, x - 1] == old:
+        if 0 <= y < h and 0 <= x - 1 < w and plate[y, x - 1] == old:
             plate[y, x - 1] = value
             q.append([y, x - 1])
 
 
-def binarize(plate):
-    # Contrast stretch and threshold
-    plate = cv2.cvtColor(plate, cv2.COLOR_BGR2GRAY)
-    plate = cv2.equalizeHist(plate)
-    # plate = 255 * (plate - np.min(plate)) / (np.max(plate) - np.min(plate))
+def binarize_255(plate, threshold):
+    # Histogram equalization and threshold
+    plate = cv2.cvtColor(plate.copy(), cv2.COLOR_BGR2GRAY)
+    plate = custom_equalize_histogram(plate)
+    if imshow_on:
+        cv2.imshow('2.5 - equalized', plate)
+        cv2.waitKey(1)
     lower = np.array(0, dtype="uint8")
-    upper = np.array(60, dtype="uint8")
+    upper = np.array(threshold, dtype="uint8")
     mask = cv2.inRange(plate, lower, upper)
-    # plate = cv2.threshold(plate, 120, 1, cv2.THRESH_BINARY)[1]
     return mask
+
+
+def custom_equalize_histogram(plate):
+    histogram, bins = np.histogram(plate, bins=np.arange(256))
+    cumulative = np.cumsum(histogram)
+    cum_norm = (((cumulative - np.min(cumulative)) / (np.max(cumulative) - np.min(cumulative))) * 255).astype("uint8")
+    eq = cum_norm[np.reshape(plate, -1)]
+    return np.reshape(eq, np.shape(plate))
 
 
 def custom_get_transform_matrix(f, t):
@@ -154,37 +170,6 @@ def custom_get_transform_matrix(f, t):
     res[1] = x[3:6]
     res[2] = x[6:9]
     return res
-
-
-# def custom_warp_perspective(image, p_mat, from_shape, to_shape):
-#     from_h, from_w = from_shape
-#     to_h, to_w = to_shape
-#     new_img = np.zeros((to_h, to_w, 3))
-#
-#     x = np.arange(0, from_w)
-#     y = np.arange(0, from_h)
-#     xx, yy = np.meshgrid(x, y)
-#     xx = np.reshape(xx, -1)
-#     yy = np.reshape(yy, -1)
-#
-#     idx_new = np.matmul(p_mat, [xx, yy, np.ones(from_w * from_h)])
-#     idx_new = (idx_new / idx_new[2]).astype(int)
-#     xx = idx_new[0]
-#     xx = np.where(xx < 0, 0, xx)
-#     xx = np.where(xx >= to_w, to_w - 1, xx)
-#     yy = idx_new[1]
-#     yy = np.where(yy < 0, 0, yy)
-#     yy = np.where(yy >= to_h, to_h - 1, yy)
-#
-#     new = np.reshape([yy, xx], (2, from_h, from_w))
-#
-#     # for i in range(from_h):
-#     #     for j in range(from_w):
-#     #         new_img[new[0, i, j], new[1, i, j]] = image[i, j]
-#
-#     new_img[new[0, :, :], new[1, :, :]] = image[:, :]
-#
-#     return new_img.astype(np.uint8)
 
 
 def custom_reverse_warp_perspective(image, p_mat, from_shape, to_shape):
@@ -222,6 +207,10 @@ def orient_corners(c):
         tl, tr = tr, tl
     if bl[0] > br[0]:
         bl, br = br, bl
+    if tl[0] > br[0]:
+        tl, br = br, tl
+    if bl[0] > tr[0]:
+        bl, tr = tr, bl
     # Flip plate if mirrored along x axis
     if tl[1] > bl[1]:
         tl, bl = bl, tl
@@ -258,9 +247,14 @@ def get_plates_by_bounding(image):
         cv2.waitKey(1)
     # return image_edges
     # print(np.mean(abs(image_edges - check)))
-    contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # contours, _ = cv2.findContours(image_edges.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours_reduced = find_contours(image_edges)
+
     # print('Contours: ', len(contours))
-    contours_reduced = sorted(contours, key=cv2.contourArea, reverse=True)[:20]
+    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:1]
+    temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
+    cv2.imshow('contours', temp)
+    cv2.waitKey(1)
 
     for con in contours_reduced:
         perimeter = cv2.arcLength(con, True)
@@ -269,6 +263,8 @@ def get_plates_by_bounding(image):
         if len(all_edges) == 4 and check(all_edges):
             all_plates.append(all_edges)
     # (i, 4, 2) array of corner coordinates for i plates in the image
+    cv2.imshow('chosen', cv2.drawContours(image, all_plates, -1, (0, 255, 0), 1))
+    cv2.waitKey(1)
     return all_plates
 
 
@@ -283,8 +279,73 @@ def print_diff(arr1, arr2):
 
 # FIND CONTOURS
 
-def findContours(edges):
-    return
+# Input : Binary image of edges
+# Output : List of objects, objects are defined by its corners
+
+def find_contours(edges):
+    contours = []
+    last = None
+    for i in range(len(edges)):
+        for j in range(len(edges[i])):
+            current = [i, j]
+            if last is not None and edges[last[0]][last[1]] == 0 and edges[current[0]][current[1]] == 255 \
+                    and check_contour_list(current, contours):
+                found = False
+                for contour in contours:
+                    if current in contour:
+                        found = True
+                if not found:
+                    temp = continue_contour(edges, current)
+                    if len(temp) >= 60:
+                        contours.append(temp)
+            last = current
+
+    for i in range(len(contours)):
+        temp = []
+        for point in contours[i]:
+            temp.append([[point[1], point[0]]])
+        contour = np.array(temp)
+        rect = cv2.minAreaRect(contour)
+        box = cv2.boxPoints(rect)
+        a, b, c, d = orient_corners((box[0], box[1], box[2], box[3]))
+        contours[i] = np.array([[a], [b], [c], [d]], dtype=np.int32)
+
+    return contours
+
+
+def check_contour_list(point, contours):
+    for contour in contours:
+        if point in contour:
+            return False
+    return True
+
+
+def continue_contour(edges, point):
+    found = []
+    current = point
+    starting_point = point
+    connected = False
+    for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
+        if edges[point[0] + dy][point[1] + dx] == 255:
+            connected = True
+            current = [point[0] + dy, point[1] + dx]
+            break
+
+    if not connected:
+        return []
+    found.append(starting_point)
+    queue = [current]
+    while len(queue) != 0:
+        current = queue.pop(0)
+        found.append(current)
+        for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
+            new = [current[0] + dy, current[1] + dx]
+            if 0 <= current[0] + dy < len(edges) \
+                    and 0 <= current[1] + dx < len(edges[0]) \
+                    and edges[current[0] + dy][current[1] + dx] == 255 \
+                    and check_contour_list(new, [found]) and check_contour_list(new, [queue]):
+                queue.insert(0, new)
+    return found
 
 
 # CANNY
@@ -525,6 +586,7 @@ def get_angle_dot(vec1, vec2):
     return abs(np.dot(unit1, unit2))
 
 
-def check_ratio(dist, epsilon=3):
-    ratio = 5
-    return abs(dist[0] / dist[1] - ratio) < epsilon and abs(dist[2] / dist[3] - ratio) < epsilon
+def check_ratio(dist, epsilon=1.5):
+    ratio = 4
+    return abs(max(dist[1], dist[0]) / min(dist[1], dist[0]) - ratio) < epsilon and abs(
+        max(dist[3], dist[2]) / min(dist[3], dist[2]) - ratio) < epsilon

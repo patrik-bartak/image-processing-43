@@ -46,6 +46,8 @@ num_set = {"0", "1", "2", "3", "4",
 
 
 def verify_format(string, is_dutch):
+    if string is None:
+        return None
     string = length_check_and_hyphen_correction(string)
     if string is None or len(string) != 8 or is_dutch and not is_dutch_format(string):
         string = None
