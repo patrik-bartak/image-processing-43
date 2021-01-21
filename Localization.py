@@ -251,7 +251,7 @@ def get_plates_by_bounding(image):
     contours_reduced = find_contours(image_edges)
 
     # print('Contours: ', len(contours))
-    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:1]
+    contours_reduced = sorted(contours_reduced, key=cv2.contourArea, reverse=True)[:5]
     temp = cv2.drawContours(image, contours_reduced, -1, (0, 255, 0), 1)
     cv2.imshow('contours', temp)
     cv2.waitKey(1)
@@ -290,51 +290,31 @@ def find_contours(edges):
             current = [i, j]
             if last is not None and edges[last[0]][last[1]] == 0 and edges[current[0]][current[1]] == 255 \
                     and check_contour_list(current, contours):
-                found = False
-                for contour in contours:
-                    if current in contour:
-                        found = True
-                if not found:
+                found = [current in contour for contour in contours]
+
+                if True not in found:
                     temp = continue_contour(edges, current)
                     if len(temp) >= 60:
                         contours.append(temp)
             last = current
 
-    for i in range(len(contours)):
-        temp = []
-        for point in contours[i]:
-            temp.append([[point[1], point[0]]])
-        contour = np.array(temp)
-        rect = cv2.minAreaRect(contour)
-        box = cv2.boxPoints(rect)
-        a, b, c, d = orient_corners((box[0], box[1], box[2], box[3]))
-        contours[i] = np.array([[a], [b], [c], [d]], dtype=np.int32)
+    contours = [orient_helper(cv2.boxPoints(cv2.minAreaRect(np.array([[[point[1], point[0]]] for point in contours[i]])))) for i in range(len(contours))]
 
     return contours
 
 
+def orient_helper(box):
+    a, b, c, d = orient_corners((box[0], box[1], box[2], box[3]))
+    return np.array([[a], [b], [c], [d]], dtype=np.int32)
+
+
 def check_contour_list(point, contours):
-    for contour in contours:
-        if point in contour:
-            return False
-    return True
+    return True not in [point in contour for contour in contours]
 
 
 def continue_contour(edges, point):
     found = []
-    current = point
-    starting_point = point
-    connected = False
-    for dy, dx in {(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1), (-1, 0), (-1, 1)}:
-        if edges[point[0] + dy][point[1] + dx] == 255:
-            connected = True
-            current = [point[0] + dy, point[1] + dx]
-            break
-
-    if not connected:
-        return []
-    found.append(starting_point)
-    queue = [current]
+    queue = [point]
     while len(queue) != 0:
         current = queue.pop(0)
         found.append(current)

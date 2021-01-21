@@ -1,0 +1,38 @@
+Date executed: date-21-01-2021_time-08-08
+Time taken: * TOTAL Time taken: 154 s.
+Num plates FOUND: 38 out of 60 expected
+Num plates INCORRECT: 4 out of 0 expected
+
+--- expected
++++ actual
+@@ -11 +10,0 @@
+-96-LKH-9
+@@ -17 +15,0 @@
+-02-BBG-7
+@@ -20 +18 @@
+-RP-NL-93
++BP-NL-93
+@@ -41,7 +39,2 @@
+-62-PB-VT
+-28-RBN-4
+-24-LSB-1
+-89-NV-JR
+-05-GH-JS
+-TT-BJ-42
+-98-JJ-GB
++89-NV-JP
++14-LSB-1
+@@ -49,12 +42 @@
+-88-XP-FS
+-72-FP-RV
+-NWMMX45
+-1-CMV-331
+-DS346WG
+-DP989CC
+-AXT3147
+-I7859AM
+-77-TR-SH
+-CM852DJ
+-85-GJ-45
+-I7859AM
++12-FP-NV
