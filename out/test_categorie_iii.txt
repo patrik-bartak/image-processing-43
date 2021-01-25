@@ -1,0 +1,4 @@
+TrainingSet/Categorie III/Video47_2.avi
+TrainingSet/Categorie III/Video51_2.avi
+TrainingSet/Categorie III/Video57_2.avi
+TrainingSet/Categorie III/Video61_2.avi

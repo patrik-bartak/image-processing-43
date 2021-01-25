@@ -1,0 +1,12 @@
+Date executed: 
+Time taken: * TOTAL Time taken: 28 s.
+Num plates FOUND: 0 out of 4 expected
+Num plates INCORRECT: 1 out of 0 expected
+
+--- expected
++++ actual
+@@ -1,4 +0,0 @@
+-I7859AM
+-77-TR-SH
+-CM852DJ
+-85-GJ-45

@@ -11,6 +11,9 @@ def correct_errors(plate_strings):
 
 
 def simple_sequential_correction(plate_strings):
+    if len(plate_strings) == 0:
+        return None
+
     min_diff = 3  # minimum hamming distance between plates considered different
 
     index_list = [0]

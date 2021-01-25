@@ -1,0 +1,14 @@
+Date executed: 
+Time taken: * TOTAL Time taken: 30 s.
+Num plates FOUND: 0 out of 6 expected
+Num plates INCORRECT: 1 out of 0 expected
+
+--- expected
++++ actual
+@@ -1,6 +0,0 @@
+-NWMMX45
+-1-CMV-331
+-DC-346WG
+-DP989CC
+-AXT-3147
+-I7859AM

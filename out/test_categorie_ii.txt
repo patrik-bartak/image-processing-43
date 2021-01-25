@@ -1,0 +1,2 @@
+TrainingSet/Categorie II/Video225.avi
+TrainingSet/Categorie II/Video230.avi

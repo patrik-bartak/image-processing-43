@@ -1,0 +1,10 @@
+Date executed: 
+Time taken: * TOTAL Time taken: 85 s.
+Num plates FOUND: 13 out of 14 expected
+Num plates INCORRECT: 1 out of 0 expected
+
+--- expected
++++ actual
+@@ -3 +3 @@
+-14-NJK-9
++14-NJX-9

@@ -1,0 +1,14 @@
+TrainingSet/Categorie I/Video10_2.avi
+TrainingSet/Categorie I/Video13_2.avi
+TrainingSet/Categorie I/Video147_2.avi
+TrainingSet/Categorie I/Video161_2.avi
+TrainingSet/Categorie I/Video171_2.avi
+TrainingSet/Categorie I/Video17_2.avi
+TrainingSet/Categorie I/Video235_2.avi
+TrainingSet/Categorie I/Video29_2.avi
+TrainingSet/Categorie I/Video2_2.avi
+TrainingSet/Categorie I/Video31_2.avi
+TrainingSet/Categorie I/Video32_2.avi
+TrainingSet/Categorie I/Video33_2.avi
+TrainingSet/Categorie I/Video3_2.avi
+TrainingSet/Categorie I/Video8_2.avi
