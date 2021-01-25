@@ -1,0 +1,6 @@
+Date executed: date-20-01-2021_time-22-41
+Time taken: * TOTAL Time taken: 70 s.
+Num plates FOUND: 1 out of 60 expected
+Num plates INCORRECT: 0 out of 0 expected
+
+14-NJK-9
