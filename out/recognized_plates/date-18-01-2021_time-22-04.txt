@@ -1,0 +1,39 @@
+Date executed: date-18-01-2021_time-22-04
+Time taken: * TOTAL Time taken: 269 s.
+Num plates FOUND: 31 out of 60 expected
+Num plates INCORRECT: 3 out of 0 expected
+
+XS-NB-23
+23-GSX-6
+72-VGX-6
+99-SZG-5
+14-NJX-9
+24-LB-HT
+67-FP-SJ
+96-LKH-9
+56-JTT-5
+88-BB-TS
+56-JTT-5
+ZD-PB-67
+02-BBG-7
+73-PV-HB
+91-PXS-9
+43-HNN-2
+43-JS-RT
+63-HK-HD
+92-LHR-6
+63-HK-HD
+3-VFX-39
+96-ND-JB
+57-LF-JB
+VD-020-P
+5-SXB-74
+23-GSR-5
+21-LH-TB
+XH-PN-44
+01-RHD-6
+69-GR-DH
+64-LJ-GF
+41-GFZ-8
+28-RXT-9
+89-LZ-GX
