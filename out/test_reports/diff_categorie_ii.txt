@@ -1,24 +1,14 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 190 s.
-Num plates FOUND: 16 out of 20 expected
-Num plates INCORRECT: 9 out of 0 expected
+Time taken: * TOTAL Time taken: 96 s.
+Num plates FOUND: 11 out of 14 expected
+Num plates INCORRECT: 2 out of 0 expected
 
 --- expected
 +++ actual
-@@ -1 +0,0 @@
--39-LJT-9
-@@ -6,0 +6,7 @@
-+19-DG-SF
-+72-TBZ-9
-+5-SXB-74
-+23-GSR-5
-+27-LH-TB
-+XH-PN-44
-+01-RHD-6
-@@ -14,2 +20 @@
+@@ -8,2 +8 @@
 -39-RVV-2
 -85-DH-FR
 +86-DH-FR
-@@ -20 +25 @@
--XY-NG-51
+@@ -14 +13 @@
+-XZ-NG-51
 +XZ-NG-50

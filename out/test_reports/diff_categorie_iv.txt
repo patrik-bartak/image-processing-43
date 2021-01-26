@@ -8,5 +8,5 @@ Num plates INCORRECT: 1 out of 0 expected
 @@ -1,4 +0,0 @@
 -I7859AM
 -77-TR-SH
--CM852DJ
 -85-GJ-45
+-I7859AM

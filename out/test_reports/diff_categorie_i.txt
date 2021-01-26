@@ -1,5 +1,5 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 110 s.
-Num plates FOUND: 18 out of 18 expected
+Time taken: * TOTAL Time taken: 112 s.
+Num plates FOUND: 19 out of 19 expected
 Num plates INCORRECT: 0 out of 0 expected
 

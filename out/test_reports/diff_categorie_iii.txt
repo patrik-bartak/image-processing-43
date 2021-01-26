@@ -1,18 +1,13 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 31 s.
-Num plates FOUND: 4 out of 8 expected
-Num plates INCORRECT: 1 out of 0 expected
+Time taken: * TOTAL Time taken: 23 s.
+Num plates FOUND: 2 out of 6 expected
+Num plates INCORRECT: 0 out of 0 expected
 
 --- expected
 +++ actual
 @@ -2 +1,0 @@
 -89-NV-JP
-@@ -4,3 +3 @@
+@@ -4,3 +2,0 @@
 -TT-BJ-42
 -98-JJ-GB
 -25-XV-LX
-+72-FP-RV
-@@ -8 +5,2 @@
--72-FP-RV
-+12-FP-RV
-+88-XP-FS
