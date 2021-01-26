@@ -29,7 +29,7 @@ Output: None
 def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
-    videos = {'total': file_path}
+    videos = {'total': [file_path]}
     categories = ['total']
 
     if file_path == 'test' or file_path == 'train':
