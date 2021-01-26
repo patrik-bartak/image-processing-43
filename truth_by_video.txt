@@ -49,7 +49,7 @@ HL-FP-34 - TrainingSet/Categorie II/Video225.avi
 50-SNG-2 - TrainingSet/Categorie II/Video230.avi
 44-TX-KX - TrainingSet/Categorie II/Video230.avi
 25-KDJ-6 - TrainingSet/Categorie II/Video230.avi
-XY-NG-51 - TrainingSet/Categorie II/Video230.avi
+XZ-NG-51 - TrainingSet/Categorie II/Video230.avi
 24-LSB-1 - TrainingSet/Categorie III/Video47_2.avi
 89-NV-JP - TrainingSet/Categorie III/Video47_2.avi
 05-GH-JS - TrainingSet/Categorie III/Video51_2.avi
