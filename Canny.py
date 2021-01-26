@@ -10,7 +10,8 @@ def canny(image, lower, upper):
     image_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # https://docs.opencv.org/master/d4/d86/group__imgproc__filter.html#ga9d7064d478c95d60003cf839430737ed
     # Noise reduction using Gaussian kernel - step 1 of Canny
-    image_f = cv2.bilateralFilter(image_grey, 5, 150, 150)  # TODO
+    kernel = cv2.getGaussianKernel(5, 150)
+    image_f = cv2.filter2D(image_grey, -1, kernel)
     # check = cv2.Canny(image_f, lower, upper)
     # Gradient calculation - step 2 of Canny
     gradient, direction = get_gradient(image_f)

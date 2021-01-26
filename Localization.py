@@ -48,7 +48,7 @@ def plate_detection(image, im_show):
     new_image = cv2.bitwise_and(original, original, mask=mask)
     corner_coords_arr = get_plates_by_bounding(new_image)
     if len(corner_coords_arr) == 0:
-        return
+        return None
 
     for coords in corner_coords_arr:
         coords = np.reshape(coords, (4, 2))
@@ -147,7 +147,7 @@ def binarize_255(plate, threshold):
 
 
 def custom_equalize_histogram(plate):
-    histogram, bins = np.histogram(plate, bins=np.arange(256))
+    histogram, bins = np.histogram(plate, bins=np.arange(257))
     cumulative = np.cumsum(histogram)
     cum_norm = (((cumulative - np.min(cumulative)) / (np.max(cumulative) - np.min(cumulative))) * 255).astype("uint8")
     eq = cum_norm[np.reshape(plate, -1)]
