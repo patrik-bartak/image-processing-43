@@ -36,6 +36,13 @@ VD-020-P - TrainingSet/Categorie I/Video8_2.avi
 46-LJG-1 - TrainingSet/Categorie II/Video225.avi
 HL-FP-34 - TrainingSet/Categorie II/Video225.avi
 51-LR-BN - TrainingSet/Categorie II/Video225.avi
+19-DG-SF - TrainingSet/Categorie II/Video225.avi
+72-TBZ-9 - TrainingSet/Categorie II/Video225.avi
+5-SXB-74 - TrainingSet/Categorie II/Video225.avi
+23-GSR-5 - TrainingSet/Categorie II/Video225.avi
+27-LH-TB - TrainingSet/Categorie II/Video225.avi
+XH-PN-44 - TrainingSet/Categorie II/Video225.avi
+01-RHD-6 - TrainingSet/Categorie II/Video225.avi
 69-GR-DH - TrainingSet/Categorie II/Video230.avi
 64-LJ-GF - TrainingSet/Categorie II/Video230.avi
 41-GFZ-8 - TrainingSet/Categorie II/Video230.avi

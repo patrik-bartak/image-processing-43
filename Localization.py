@@ -235,10 +235,8 @@ def get_plates_by_bounding(image):
         cv2.waitKey(1)
 
     for con in contours_reduced:
-        perimeter = cv2.arcLength(con, True)
-        all_edges = cv2.approxPolyDP(con, 0.018 * perimeter, True)
         # all_plates.append(all_edges)
-        if len(all_edges) == 4 and Checker.check(all_edges):
-            all_plates.append(all_edges)
+        if Checker.check(con):
+            all_plates.append(con)
     # (i, 4, 2) array of corner coordinates for i plates in the image
     return all_plates

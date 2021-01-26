@@ -1,5 +1,17 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 0 s.
-Num plates FOUND: 0.0 out of 0 expected
-Num plates INCORRECT: 1 out of 0 expected
+Time taken: * TOTAL Time taken: 93 s.
+Num plates FOUND: 12 out of 13 expected
+Num plates INCORRECT: 0 out of 0 expected
 
+41-JS-SB
+46-LS-KV
+46-LJG-1
+HL-FP-34
+51-LR-BN
+19-DG-SF
+72-TBZ-9
+5-SXB-74
+23-GSR-5
+27-LH-TB
+XH-PN-44
+01-RHD-6

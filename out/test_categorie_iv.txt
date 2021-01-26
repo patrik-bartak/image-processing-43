@@ -1,4 +1,5 @@
-TrainingSet/Categorie IV/Video111_2.avi
-TrainingSet/Categorie IV/Video86_2.avi
-TrainingSet/Categorie IV/Video95_2.avi
-TrainingSet/Categorie IV/Video97_2.avi
+TrainingSet/Categorie IV/Video101_2.avi
+TrainingSet/Categorie IV/Video105_2.avi
+TrainingSet/Categorie IV/Video106_2.avi
+TrainingSet/Categorie IV/Video107_2.avi
+TrainingSet/Categorie IV/Video89_2.avi

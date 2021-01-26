@@ -1,19 +1,21 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 85 s.
-Num plates FOUND: 13 out of 14 expected
+Time taken: * TOTAL Time taken: 99 s.
+Num plates FOUND: 15 out of 16 expected
 Num plates INCORRECT: 1 out of 0 expected
 
 XS-NB-23
+98-THD-4
 23-GSX-6
+99-SZG-5
 14-NJX-9
-68-NS-ND
-96-LKH-9
+24-LB-HT
 56-JTT-5
+88-BB-TS
+ZD-PB-67
 02-BBG-7
-93-PXS-9
+73-PV-HB
 RP-NL-93
-43-JS-RT
-63-HK-HD
-92-LHR-6
-63-HK-HD
+01-XJ-ND
 VD-020-P
+32-LBD-6
+20-JL-DS

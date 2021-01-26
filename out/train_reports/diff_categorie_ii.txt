@@ -1,5 +1,9 @@
 Date executed: 
-Time taken: * TOTAL Time taken: 0 s.
-Num plates FOUND: 0.0 out of 0 expected
-Num plates INCORRECT: 1 out of 0 expected
+Time taken: * TOTAL Time taken: 93 s.
+Num plates FOUND: 12 out of 13 expected
+Num plates INCORRECT: 0 out of 0 expected
 
+--- expected
++++ actual
+@@ -1 +0,0 @@
+-39-LJT-9
