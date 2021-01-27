@@ -108,12 +108,14 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
         # perform some batch error correction on the complete output
         final_output = pattern_error_correction.correct_errors(plate_strings)
 
+        output(final_output)
+
         postprocessing_time_taken = '* POSTPROCESSING Time taken: {} s.'.format(
             int(round(time.time())) - postprocessing_time_start)
         print(postprocessing_time_taken)
 
         # toggle writing to file
-        write_to_file = True
+        write_to_file = False
         truth_path = ""
         if file_path == 'test' or file_path == 'train':
             truth_path = 'out/{}_{}_'.format(file_path, category)
@@ -140,6 +142,15 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
             if file_path == 'train' or file_path == 'test':
                 output_path = 'out/{}_reports/diff_'.format(file_path) + category + "{}.txt"
             file_out(diff, output_path, num_correct, len(arr_expected), num_incorrect, total_time_taken, date)
+
+
+def output(arr_output):
+    file = open('sampleOutput.csv', 'w')
+    str_output = ''
+    if arr_output is not None:
+        str_output = "\n".join(arr_output)
+    file.write(str_output)
+    file.close()
 
 
 def file_out(arr_output, path, num_correct, expected_num_plates, num_incorrect, total_time_taken, add_date):

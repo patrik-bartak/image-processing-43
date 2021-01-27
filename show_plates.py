@@ -1,3 +1,5 @@
+import argparse
+
 from Localization import plate_detection
 import cv2 
 import numpy as np

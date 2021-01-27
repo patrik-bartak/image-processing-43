@@ -1,12 +1,12 @@
-opencv-python~=4.5.1.48
+opencv-python
 jupyter
-numpy~=1.19.5
+numpy
 pillow
 imageio
-scipy~=1.6.0
+scipy
 matplotlib
 notebook
 scikit-image
 scikit-learn
-pandas~=1.2.0
-py-cpuinfo~=7.0.0
+pandas
+py-cpuinfo
