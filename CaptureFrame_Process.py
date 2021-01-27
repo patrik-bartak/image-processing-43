@@ -96,10 +96,12 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
 
                     if show:
                         cv2.imshow('plate', plate)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        cv2.waitKey(1)
+                    if 0xFF == ord('q'):
                         break
             cap.release()
-            cv2.destroyAllWindows()
+            if show:
+                cv2.destroyAllWindows()
 
         total_time_taken = '* TOTAL Time taken: {} s.'.format(int(round(time.time())) - time_start)
         print(total_time_taken)

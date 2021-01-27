@@ -3,7 +3,91 @@ import numpy as np
 
 from read_templates import get_templates
 
-templates = get_templates()
+standard = [cv2.imread('templates/LettersStandard/1.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/2.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/3.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/4.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/5.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/6.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/7.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/8.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/9.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/10.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/11.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/12.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/13.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/14.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/15.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/16.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/LettersStandard/17.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/0.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/1.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/2.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/3.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/4.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/5.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/6.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/7.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/8.bmp', cv2.IMREAD_GRAYSCALE),
+            cv2.imread('templates/NumbersStandard/9.bmp', cv2.IMREAD_GRAYSCALE)]
+
+shear_left = [cv2.imread('templates/LettersShearedLeft/1.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/2.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/3.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/4.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/5.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/6.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/7.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/8.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/9.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/10.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/11.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/12.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/13.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/14.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/15.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/16.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/LettersShearedLeft/17.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/0.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/1.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/2.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/3.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/4.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/5.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/6.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/7.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/8.bmp', cv2.IMREAD_GRAYSCALE),
+              cv2.imread('templates/NumbersShearedLeft/9.bmp', cv2.IMREAD_GRAYSCALE)]
+
+shear_right = [cv2.imread('templates/LettersShearedRight/1.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/2.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/3.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/4.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/5.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/6.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/7.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/8.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/9.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/10.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/11.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/12.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/13.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/14.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/15.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/16.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/LettersShearedRight/17.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/0.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/1.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/2.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/3.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/4.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/5.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/6.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/7.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/8.bmp', cv2.IMREAD_GRAYSCALE),
+               cv2.imread('templates/NumbersShearedRight/9.bmp', cv2.IMREAD_GRAYSCALE)]
+
+templates = [standard, shear_left, shear_right]
 index = ["B", "D", "F", "G", "H", "J", "K",
          "L", "M", "N", "P", "R", "S", "T",
          "V", "X", "Z", "0", "1", "2", "3",
@@ -12,8 +96,6 @@ index = ["B", "D", "F", "G", "H", "J", "K",
 for i in range(len(templates)):
     for j in range(len(templates[0])):
         templates[i][j] = cv2.threshold(cv2.resize(templates[i][j], (60, 85)), 120, 1, cv2.THRESH_BINARY)[1]
-        # cv2.imshow('template', templates[i][j] * 255)
-        # cv2.waitKey(0)
 
 """
 In this file, you will define your own segment_and_recognize function.
