@@ -41,12 +41,15 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
     for category in categories:
         time_start = int(round(time.time()))
         plate_strings = []  # program output
+        formatted_result = []
         for path in videos[category]:
             cap = cv2.VideoCapture(path)
+            frame_number = 0
             # count = 0  # for file saving
 
             while cap.isOpened():
                 ret, frame = cap.read()
+                frame_number += 1
                 if frame is None:
                     break
                 if show:
@@ -92,6 +95,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                         plate = plate * 255
 
                     plate_strings.append(string)
+                    formatted_result.append(string + ',' + str(frame_number) + ',' + str(frame_number/sample_frequency))
                     print(string)
 
                     if show:
@@ -108,9 +112,9 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
 
         postprocessing_time_start = int(round(time.time()))
         # perform some batch error correction on the complete output
-        final_output = pattern_error_correction.correct_errors(plate_strings)
+        final_output, formatted_result = pattern_error_correction.correct_errors(plate_strings, formatted_result)
 
-        output(final_output)
+        output(formatted_result)
 
         postprocessing_time_taken = '* POSTPROCESSING Time taken: {} s.'.format(
             int(round(time.time())) - postprocessing_time_start)
@@ -147,7 +151,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
 
 
 def output(arr_output):
-    file = open('sampleOutput.csv', 'w')
+    file = open('Output.csv', 'w')
+    file.write('License plate,Frame no.,Timestamp(seconds)\n')
     str_output = ''
     if arr_output is not None:
         str_output = "\n".join(arr_output)

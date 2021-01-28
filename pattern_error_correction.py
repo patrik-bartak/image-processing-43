@@ -4,13 +4,13 @@ confusing_JI = {'J', 'I'}
 confusing_MH = {'M', 'H'}
 
 
-def correct_errors(plate_strings):
+def correct_errors(plate_strings, result):
     # for string in plate_strings:
-    plate_strings = simple_sequential_correction(plate_strings)
-    return plate_strings
+    plate_strings, result = simple_sequential_correction(plate_strings, result)
+    return plate_strings, result
 
 
-def simple_sequential_correction(plate_strings):
+def simple_sequential_correction(plate_strings, formatted_strings):
     if len(plate_strings) == 0:
         return None
 
@@ -27,12 +27,15 @@ def simple_sequential_correction(plate_strings):
     index_list.append(len(plate_strings))
 
     most_common = []
+    result = []
     for i in range(len(index_list) - 1):
         # https://www.geeksforgeeks.org/python-find-most-frequent-element-in-a-list/
         # append the most common item out of the substrings defined by the index_list
-        most_common.append(Counter(plate_strings[index_list[i]: index_list[i + 1]]).most_common(1)[0][0])
+        plate = Counter(plate_strings[index_list[i]: index_list[i + 1]]).most_common(1)[0][0]
+        most_common.append(plate)
+        result.append(formatted_strings[plate_strings.index(plate)])
 
-    return most_common
+    return most_common, result
 
 
 def hamming_distance(str1, str2):
