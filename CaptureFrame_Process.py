@@ -57,8 +57,9 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                     cv2.imshow('input', frame)
                     cv2.waitKey(1)
                 t = 0
-                while t < 10:
+                while t < sample_frequency:
                     cap.read()
+                    frame_number += 1
                     t += 1
 
                 colour_plates = Localization.plate_detection(frame, show)
@@ -96,7 +97,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                         plate = plate * 255
 
                     plate_strings.append(string)
-                    formatted_result.append(string + ',' + str(frame_number) + ',' + str(frame_number/sample_frequency))
+                    formatted_result.append(string + ',' + str(frame_number) + ',' + str(frame_number/cap.get(cv2.CAP_PROP_FPS)))
                     print(string)
 
                     if show:
