@@ -30,6 +30,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
     # https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_gui/py_video_display/py_video_display.html
 
     videos = {'total': [file_path]}
+    print(save_path)
     categories = ['total']
 
     if file_path == 'test' or file_path == 'train':
@@ -114,7 +115,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
         # perform some batch error correction on the complete output
         final_output, formatted_result = pattern_error_correction.correct_errors(plate_strings, formatted_result)
 
-        output(formatted_result)
+        output(formatted_result, save_path)
 
         postprocessing_time_taken = '* POSTPROCESSING Time taken: {} s.'.format(
             int(round(time.time())) - postprocessing_time_start)
@@ -150,8 +151,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
             file_out(diff, output_path, num_correct, len(arr_expected), num_incorrect, total_time_taken, date)
 
 
-def output(arr_output):
-    file = open('Output.csv', 'w')
+def output(arr_output, path):
+    file = open(path + '/Output.csv', 'w')
     file.write('License plate,Frame no.,Timestamp(seconds)\n')
     str_output = ''
     if arr_output is not None:
