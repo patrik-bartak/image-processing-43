@@ -152,7 +152,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
 
 
 def output(arr_output, path):
-    file = open(path + '/Output.csv', 'w')
+    file = open(path, 'w')
     file.write('License plate,Frame no.,Timestamp(seconds)\n')
     str_output = ''
     if arr_output is not None:
