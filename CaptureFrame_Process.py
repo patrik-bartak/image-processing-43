@@ -83,11 +83,11 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                             break
                         elif string is None:
                             colour_plates[i] = colour_plates[i][10:-10, 20:-20]
-                            print("Invalid format, cropping image...")
+                            #print("Invalid format, cropping image...")
                             continue
 
                     if string is None:
-                        print("Recognized plate invalid format")
+                        #print("Recognized plate invalid format")
                         continue
                     # https://stackoverflow.com/questions/43830131/combine-more-than-1-opencv-images-and-show-them-in-cv2-imshow-in-opencv-python
                     # count += 1  # for file saving
@@ -153,7 +153,8 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
 
 
 def output(arr_output, path):
-    file = open(path, 'w')
+    print('Writing into imageprocessingcourse/{}.'.format(path))
+    file = open('imageprocessingcourse/' + path, 'w')
     file.write('License plate,Frame no.,Timestamp(seconds)\n')
     str_output = ''
     if arr_output is not None:

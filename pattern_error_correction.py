@@ -33,7 +33,7 @@ def simple_sequential_correction(plate_strings, formatted_strings):
         # append the most common item out of the substrings defined by the index_list
         plate = Counter(plate_strings[index_list[i]: index_list[i + 1]]).most_common(1)[0][0]
         most_common.append(plate)
-        result.append(formatted_strings[plate_strings.index(plate)])
+        result.append(formatted_strings[plate_strings.index(plate, index_list[i])])
 
     return most_common, result
 
