@@ -1,5 +1,4 @@
 import time
-import difflib
 from datetime import datetime
 
 import cv2
@@ -141,15 +140,6 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                 output_path = 'out/{}_reports/plates_'.format(file_path) + category + "{}.txt"
                 date = False
             file_out(final_output, output_path, num_correct, len(arr_expected), num_incorrect, total_time_taken, date)
-
-            diff = difflib.unified_diff(arr_expected, final_output if final_output is not None else '',
-                                        fromfile='expected', tofile='actual',
-                                        lineterm='',
-                                        n=0)
-            output_path = "out/plate_diffs/{}.txt"
-            if file_path == 'train' or file_path == 'test':
-                output_path = 'out/{}_reports/diff_'.format(file_path) + category + "{}.txt"
-            file_out(diff, output_path, num_correct, len(arr_expected), num_incorrect, total_time_taken, date)
 
 
 def output(arr_output, path):
