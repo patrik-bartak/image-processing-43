@@ -56,7 +56,7 @@ def CaptureFrame_Process(file_path, sample_frequency, save_path, show):
                 if show:
                     cv2.imshow('input', frame)
                     cv2.waitKey(1)
-                t = 0
+                t = 1
                 while t < sample_frequency:
                     cap.read()
                     frame_number += 1
